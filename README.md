@@ -187,7 +187,13 @@ This keeps `MainWindow` free of page-type switches and makes room for a later pl
 
 `PageFactory` no longer hard-codes route-kind handling directly. It now delegates route resolution through `IRouteContentFactory`, with only the built-in page implementation registered today. Plugin page hosts and external panel hosts are deliberately left for later.
 
+When multiple route-content factories can handle the same route, higher `Priority` wins. Current registrations only include the built-in implementation, but the precedence rule is now explicit.
+
+`CompositeNavigationRouteRegistry` validates merged routes and ignores duplicate tags after the first provider wins, emitting a debug diagnostic so route collisions do not fail silently.
+
 `NavigationService` is still a singleton single-window shell service. That is intentional for the current app shape, but it needs to move to a per-window navigation context before multi-window UI is introduced.
+
+The composite registry unsubscribes from provider events on disposal. That is sufficient for the current singleton shell, but hot-loaded plugin providers are still a future lifecycle problem to solve explicitly.
 
 ## Publish Notes
 

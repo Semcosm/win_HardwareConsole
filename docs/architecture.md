@@ -37,6 +37,7 @@ Current route-content boundary:
 
 - `IRouteContentFactory` is the extension point that maps a `NavigationRoute` to shell content
 - `BuiltInPageRouteContentFactory` currently handles `BuiltInNavigationRoute`
+- higher `IRouteContentFactory.Priority` wins when multiple factories can create the same route
 - plugin page hosting and external panel hosting are intentionally not implemented yet, but now have a clear seam instead of being hidden inside `PageFactory`
 
 Current `NavigationService` scope:
@@ -49,9 +50,11 @@ Current route registry behavior:
 
 - built-in routes currently come from `BuiltInNavigationRouteProvider`
 - `CompositeNavigationRouteRegistry` merges route providers into the shell-facing registry
+- duplicate route tags are detected during merge; first provider wins and duplicates are ignored with a debug diagnostic
 - the registry now exposes `RoutesChanged`
 - `MainWindow` rebuilds its menu when route metadata changes
 - plugin route contribution is not implemented yet, but the registry no longer requires plugins to mutate the built-in route source directly
+- the composite registry now unsubscribes from provider events on `Dispose`, but dynamic provider attach/detach for hot-loaded plugins is still a later step
 
 ## Direction
 

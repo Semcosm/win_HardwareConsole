@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
 
 namespace Semcosm.HardwareConsole.App.Services;
 
@@ -14,7 +15,9 @@ public sealed class PageFactory : IPageFactory
         IEnumerable<IRouteContentFactory> routeContentFactories)
     {
         _routeRegistry = routeRegistry;
-        _routeContentFactories = routeContentFactories.ToList();
+        _routeContentFactories = routeContentFactories
+            .OrderByDescending(factory => factory.Priority)
+            .ToList();
     }
 
     public Type? ResolvePageType(string route)
@@ -25,8 +28,22 @@ public sealed class PageFactory : IPageFactory
             return null;
         }
 
-        return _routeContentFactories
-            .FirstOrDefault(factory => factory.CanCreate(navigationRoute))
-            ?.ResolvePageType(navigationRoute);
+        var matchingFactories = _routeContentFactories
+            .Where(factory => factory.CanCreate(navigationRoute))
+            .ToList();
+
+        if (matchingFactories.Count == 0)
+        {
+            return null;
+        }
+
+        if (matchingFactories.Count > 1)
+        {
+            Debug.WriteLine(
+                $"Multiple route content factories matched route '{navigationRoute.Tag}'. " +
+                $"Using '{matchingFactories[0].GetType().Name}' with priority {matchingFactories[0].Priority}.");
+        }
+
+        return matchingFactories[0].ResolvePageType(navigationRoute);
     }
 }
