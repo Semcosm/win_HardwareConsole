@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Semcosm.HardwareConsole.app.Models;
 
@@ -22,4 +23,20 @@ public sealed class PluginManifestModel
 
     public List<string> Capabilities { get; set; } = new();
     public List<string> MatchedDevices { get; set; } = new();
+
+    public string RiskLevelText => RiskLevel switch
+    {
+        PluginRiskLevel.ReadOnly => "Read Only",
+        PluginRiskLevel.SafeControl => "Safe Control",
+        PluginRiskLevel.HardwareWrite => "Hardware Write",
+        PluginRiskLevel.KernelDriverRequired => "Kernel Driver Required",
+        PluginRiskLevel.Experimental => "Experimental",
+        _ => "Unknown"
+    };
+
+    public string CapabilitySummary =>
+        !Capabilities.Any() ? "No capabilities declared" : string.Join(" · ", Capabilities);
+
+    public string MatchedDeviceSummary =>
+        !MatchedDevices.Any() ? "No matched device" : string.Join(" · ", MatchedDevices);
 }
