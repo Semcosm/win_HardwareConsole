@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Semcosm.HardwareConsole.Abstractions;
 using Semcosm.HardwareConsole.Abstractions.Models;
 
 namespace Semcosm.HardwareConsole.Mock.Services;
@@ -67,59 +68,51 @@ public sealed class MockHardwareService
         };
     }
 
-    public IReadOnlyList<PluginManifestModel> GetInstalledPlugins()
+    public IReadOnlyList<PluginDescriptor> GetInstalledPluginDescriptors()
     {
-        return new List<PluginManifestModel>
+        return new List<PluginDescriptor>
         {
-            new()
-            {
-                Id = "semcosm.windows.power",
-                DisplayName = "Windows Power Plugin",
-                Vendor = "Semcosm",
-                Version = "0.1.0",
-                State = "Enabled",
-                RiskLevel = PluginRiskLevel.SafeControl,
-                Capabilities =
+            new(
+                "semcosm.windows.power",
+                "Windows Power Plugin",
+                "Semcosm",
+                "0.1.0",
+                HardwareRiskLevel.SafeControl,
+                new[]
                 {
                     "power.plan",
                     "power.ac_dc",
                     "scheduler.ecoqos",
                     "process.priority"
                 },
-                MatchedDevices =
+                new[]
                 {
                     "Windows power subsystem"
-                }
-            },
-            new()
-            {
-                Id = "semcosm.nvidia.nvapi",
-                DisplayName = "NVIDIA NVAPI Plugin",
-                Vendor = "Semcosm",
-                Version = "0.1.0",
-                State = "Mocked",
-                RiskLevel = PluginRiskLevel.SafeControl,
-                Capabilities =
+                }),
+            new(
+                "semcosm.nvidia.nvapi",
+                "NVIDIA NVAPI Plugin",
+                "Semcosm",
+                "0.1.0",
+                HardwareRiskLevel.SafeControl,
+                new[]
                 {
                     "gpu.sensor.temperature",
                     "gpu.sensor.power",
                     "gpu.performance_state",
                     "gpu.power_limit"
                 },
-                MatchedDevices =
+                new[]
                 {
                     "NVIDIA GeForce RTX 4060 Laptop"
-                }
-            },
-            new()
-            {
-                Id = "semcosm.mechrevo.gm6px0x",
-                DisplayName = "Mechrevo GM6PX0X Platform Plugin",
-                Vendor = "Semcosm",
-                Version = "0.1.0",
-                State = "Mocked",
-                RiskLevel = PluginRiskLevel.HardwareWrite,
-                Capabilities =
+                }),
+            new(
+                "semcosm.mechrevo.gm6px0x",
+                "Mechrevo GM6PX0X Platform Plugin",
+                "Semcosm",
+                "0.1.0",
+                HardwareRiskLevel.HardwareWrite,
+                new[]
                 {
                     "fan.cpu.rpm",
                     "fan.gpu.rpm",
@@ -127,11 +120,21 @@ public sealed class MockHardwareService
                     "fan.gpu.pwm",
                     "platform.performance_mode"
                 },
-                MatchedDevices =
+                new[]
                 {
                     "MECHREVO Kuangshi16Pro GM6PX0X"
-                }
-            }
+                })
+        };
+    }
+
+    public string GetInstalledPluginState(string pluginId)
+    {
+        return pluginId switch
+        {
+            "semcosm.windows.power" => "Enabled",
+            "semcosm.nvidia.nvapi" => "Mocked",
+            "semcosm.mechrevo.gm6px0x" => "Mocked",
+            _ => "Unknown"
         };
     }
 }

@@ -32,10 +32,14 @@ Current app goals:
 docs/
 src/
   Semcosm.HardwareConsole.App/
+    Models/
     ViewModels/
     Views/
   Semcosm.HardwareConsole.Abstractions/
-    Models/
+    PluginDescriptor.cs
+    DeviceDescriptor.cs
+    SensorDescriptor.cs
+    ControlDescriptor.cs
   Semcosm.HardwareConsole.Mock/
     Services/
 ```
@@ -81,8 +85,9 @@ Shows mock summary and control-state cards for:
 
 Backed by:
 
-- `src/Semcosm.HardwareConsole.Abstractions/Models/PluginManifestModel.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/PluginDescriptor.cs`
 - `src/Semcosm.HardwareConsole.Mock/Services/MockHardwareService.cs`
+- `src/Semcosm.HardwareConsole.App/Models/PluginManifestModel.cs`
 - `src/Semcosm.HardwareConsole.App/ViewModels/PluginsViewModel.cs`
 - `src/Semcosm.HardwareConsole.App/Views/PluginsPage.xaml`
 
@@ -100,6 +105,15 @@ Current mock plugins:
 - `Windows Power Plugin`
 - `NVIDIA NVAPI Plugin`
 - `Mechrevo GM6PX0X Platform Plugin`
+
+The current flow is:
+
+```text
+PluginDescriptor
+  -> PluginManifestModel
+    -> PluginsViewModel
+      -> PluginsPage
+```
 
 ## Why This Shape
 

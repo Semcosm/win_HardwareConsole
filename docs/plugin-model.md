@@ -4,7 +4,23 @@
 
 The app is moving toward a capability-driven hardware console instead of a brand-specific tuning panel.
 
-Today, `PluginManifestModel` is the UI-side shape used to describe:
+`Semcosm.HardwareConsole.Abstractions` now contains the first plugin-facing contract layer, including:
+
+- `PluginDescriptor`
+- `DeviceDescriptor`
+- `SensorDescriptor`
+- `ControlDescriptor`
+- `CapabilityDescriptor`
+- `ProfileDescriptor`
+- `PolicyDescriptor`
+- `HardwareRiskLevel`
+- `ControlRiskLevel`
+- `SensorKind`
+- `ControlKind`
+
+`PluginManifestModel` remains in the App project as a UI-facing projection. It is now mapped from `PluginDescriptor` instead of acting as the plugin protocol itself.
+
+The current UI model still describes:
 
 - plugin identity
 - vendor
