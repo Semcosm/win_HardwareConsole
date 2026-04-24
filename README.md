@@ -2,7 +2,18 @@
 
 WinUI 3 based Windows hardware control console prototype.
 
-The current repository focuses on establishing the app shell and the UI architecture for a future plugin-driven hardware control platform:
+The current repository focuses on establishing the app shell and the UI architecture for a future plugin-driven hardware control platform.
+
+This PR-level layout now follows PascalCase naming and a `src/`-based project structure:
+
+```text
+src/
+  Semcosm.HardwareConsole.App/
+  Semcosm.HardwareConsole.Abstractions/
+  Semcosm.HardwareConsole.Mock/
+```
+
+Current app goals:
 
 - `Dashboard` shows unified hardware state through bound view models instead of hard-coded UI.
 - `Plugins` shows capability providers, risk level, matched devices, and extension metadata.
@@ -18,26 +29,30 @@ The current repository focuses on establishing the app shell and the UI architec
 ## Current Structure
 
 ```text
-Semcosm.HardwareConsole.app/
-  Models/
-  Services/
-  ViewModels/
-  Views/
+docs/
+src/
+  Semcosm.HardwareConsole.App/
+    ViewModels/
+    Views/
+  Semcosm.HardwareConsole.Abstractions/
+    Models/
+  Semcosm.HardwareConsole.Mock/
+    Services/
 ```
 
 Current UI flow:
 
 ```text
-MockHardwareService
+Mock service
   -> ViewModel
-    -> WinUI Page
+    -> WinUI page
 ```
 
 This is the intended direction for the real app as well:
 
 ```text
 Hardware plugin / platform adapter
-  -> service layer
+  -> abstraction-backed service layer
     -> view model
       -> WinUI page
 ```
@@ -48,10 +63,10 @@ Hardware plugin / platform adapter
 
 Backed by:
 
-- `Models/MetricCardModel.cs`
-- `Services/MockHardwareService.cs`
-- `ViewModels/DashboardViewModel.cs`
-- `Views/DashboardPage.xaml`
+- `src/Semcosm.HardwareConsole.Abstractions/Models/MetricCardModel.cs`
+- `src/Semcosm.HardwareConsole.Mock/Services/MockHardwareService.cs`
+- `src/Semcosm.HardwareConsole.App/ViewModels/DashboardViewModel.cs`
+- `src/Semcosm.HardwareConsole.App/Views/DashboardPage.xaml`
 
 Shows mock summary and control-state cards for:
 
@@ -66,10 +81,10 @@ Shows mock summary and control-state cards for:
 
 Backed by:
 
-- `Models/PluginManifestModel.cs`
-- `Services/MockHardwareService.cs`
-- `ViewModels/PluginsViewModel.cs`
-- `Views/PluginsPage.xaml`
+- `src/Semcosm.HardwareConsole.Abstractions/Models/PluginManifestModel.cs`
+- `src/Semcosm.HardwareConsole.Mock/Services/MockHardwareService.cs`
+- `src/Semcosm.HardwareConsole.App/ViewModels/PluginsViewModel.cs`
+- `src/Semcosm.HardwareConsole.App/Views/PluginsPage.xaml`
 
 Shows mock installed plugins with:
 
@@ -94,18 +109,17 @@ That keeps the UI stable when the backend evolves from mock data to real hardwar
 
 ## Run
 
-Open `Semcosm.HardwareConsole.app/Semcosm.HardwareConsole.app.slnx` in Visual Studio and run the WinUI project.
+Open `src/Semcosm.HardwareConsole.App/Semcosm.HardwareConsole.App.slnx` in Visual Studio and run the WinUI project.
 
 If your environment has the .NET SDK installed, you can also use:
 
 ```bash
-dotnet build Semcosm.HardwareConsole.app/Semcosm.HardwareConsole.app.csproj
+dotnet build src/Semcosm.HardwareConsole.App/Semcosm.HardwareConsole.App.csproj
 ```
 
 ## Next Suggested Steps
 
-- Rename the project namespace from `Semcosm.HardwareConsole.app` to `Semcosm.HardwareConsole.App`
 - Build the `Profiles` page with the same `Model + Service + ViewModel + Binding` pattern
 - Introduce real plugin manifest loading
-- Split mock services behind interfaces
+- Split mock services behind interfaces where the first real provider is ready
 - Add reusable card controls and shared styles

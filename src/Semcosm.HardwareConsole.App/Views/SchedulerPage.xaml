@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Semcosm.HardwareConsole.App.Views.SchedulerPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <StackPanel Padding="32" Spacing="16">
+        <TextBlock Text="Scheduler" FontSize="32" FontWeight="SemiBold" />
+        <TextBlock Text="Core scheduling, process policies, boost logic and workload-aware rules." Opacity="0.72" />
+    </StackPanel>
+</Page>
