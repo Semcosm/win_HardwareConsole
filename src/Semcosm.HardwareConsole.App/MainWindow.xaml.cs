@@ -19,18 +19,12 @@ namespace Semcosm.HardwareConsole.App
             _routeRegistry = routeRegistry;
             InitializeComponent();
 
+            _routeRegistry.RoutesChanged += RouteRegistry_RoutesChanged;
+            Closed += MainWindow_Closed;
+
             BuildNavigationMenu();
             _navigationService.Initialize(ContentFrame);
-
-            var defaultRoute = _routeRegistry
-                .GetRoutes()
-                .FirstOrDefault(route => !route.IsFooter);
-
-            if (defaultRoute is not null)
-            {
-                _navigationService.Navigate(defaultRoute.Tag);
-                RootNavigationView.SelectedItem = FindNavigationItem(defaultRoute.Tag);
-            }
+            SelectInitialRoute();
         }
 
         private void RootNavigationView_SelectionChanged(
@@ -75,15 +69,17 @@ namespace Semcosm.HardwareConsole.App
             {
                 Content = route.Title,
                 Tag = route.Tag,
-                Icon = CreateIcon(route.Icon)
+                Icon = CreateIcon(route)
             };
         }
 
-        private IconElement CreateIcon(string icon)
+        private static IconElement CreateIcon(NavigationRoute route)
         {
-            return Enum.TryParse<Symbol>(icon, ignoreCase: true, out var symbol)
-                ? new SymbolIcon(symbol)
-                : new SymbolIcon(Symbol.Document);
+            return route switch
+            {
+                BuiltInNavigationRoute builtInRoute => new SymbolIcon(builtInRoute.Icon),
+                _ => new SymbolIcon(Symbol.Document)
+            };
         }
 
         private NavigationViewItem? FindNavigationItem(string tag)
@@ -97,6 +93,51 @@ namespace Semcosm.HardwareConsole.App
                 .FooterMenuItems
                 .OfType<NavigationViewItem>()
                 .FirstOrDefault(candidate => string.Equals(candidate.Tag?.ToString(), tag));
+        }
+
+        private void RouteRegistry_RoutesChanged(object? sender, EventArgs e)
+        {
+            var selectedTag = GetSelectedTag();
+
+            BuildNavigationMenu();
+
+            if (!string.IsNullOrWhiteSpace(selectedTag))
+            {
+                var selectedItem = FindNavigationItem(selectedTag);
+                if (selectedItem is not null)
+                {
+                    RootNavigationView.SelectedItem = selectedItem;
+                    return;
+                }
+            }
+
+            SelectInitialRoute();
+        }
+
+        private void MainWindow_Closed(object sender, WindowEventArgs args)
+        {
+            _routeRegistry.RoutesChanged -= RouteRegistry_RoutesChanged;
+            Closed -= MainWindow_Closed;
+        }
+
+        private void SelectInitialRoute()
+        {
+            var defaultRoute = _routeRegistry
+                .GetRoutes()
+                .FirstOrDefault(route => !route.IsFooter);
+
+            if (defaultRoute is null)
+            {
+                return;
+            }
+
+            _navigationService.Navigate(defaultRoute.Tag);
+            RootNavigationView.SelectedItem = FindNavigationItem(defaultRoute.Tag);
+        }
+
+        private string? GetSelectedTag()
+        {
+            return (RootNavigationView.SelectedItem as NavigationViewItem)?.Tag?.ToString();
         }
     }
 }

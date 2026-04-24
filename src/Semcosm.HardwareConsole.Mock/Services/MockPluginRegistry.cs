@@ -7,5 +7,5 @@ public sealed class MockPluginRegistry : IPluginRegistry
 {
     public IReadOnlyList<PluginDescriptor> GetInstalledPlugins() => MockHardwareData.InstalledPlugins;
 
-    public string GetPluginState(string pluginId) => MockHardwareData.GetPluginState(pluginId);
+    public PluginState GetPluginState(string pluginId) => MockHardwareData.GetPluginState(pluginId);
 }

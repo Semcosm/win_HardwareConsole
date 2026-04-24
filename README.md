@@ -67,6 +67,12 @@ NavigationRoute registry
       -> MainWindow / NavigationView
 ```
 
+Current route model:
+
+- `BuiltInNavigationRoute` keeps `Type PageType` and a typed `Symbol` icon for app-owned WinUI pages
+- base `NavigationRoute` now carries route kind and provider identity instead of assuming every route is a direct `Type`
+- plugin-hosted and external-panel routes are reserved for the next stage
+
 This is the intended direction for the real app as well:
 
 ```text
@@ -164,12 +170,16 @@ dotnet build src/Semcosm.HardwareConsole.App/Semcosm.HardwareConsole.App.csproj
 Built-in navigation is now table-driven through:
 
 - `src/Semcosm.HardwareConsole.App/Services/NavigationRoute.cs`
+- `src/Semcosm.HardwareConsole.App/Services/NavigationRouteKind.cs`
+- `src/Semcosm.HardwareConsole.App/Services/BuiltInNavigationRoute.cs`
 - `src/Semcosm.HardwareConsole.App/Services/INavigationRouteRegistry.cs`
 - `src/Semcosm.HardwareConsole.App/Services/BuiltInNavigationRouteRegistry.cs`
 - `src/Semcosm.HardwareConsole.App/Services/PageFactory.cs`
 - `src/Semcosm.HardwareConsole.App/Services/NavigationService.cs`
 
-This keeps `MainWindow` free of page-type switches and makes room for a later plugin-provided route source.
+This keeps `MainWindow` free of page-type switches and makes room for a later plugin-provided route source. The registry also exposes `RoutesChanged` so the shell can rebuild menu items when route metadata changes.
+
+`NavigationService` is still a singleton single-window shell service. That is intentional for the current app shape, but it needs to move to a per-window navigation context before multi-window UI is introduced.
 
 ## Publish Notes
 

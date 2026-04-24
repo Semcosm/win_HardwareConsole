@@ -9,18 +9,20 @@ public sealed class BuiltInNavigationRouteRegistry : INavigationRouteRegistry
     private static readonly IReadOnlyList<NavigationRoute> Routes =
         new List<NavigationRoute>
         {
-            new("dashboard", "Dashboard", typeof(Views.DashboardPage), "Home"),
-            new("performance", "Performance", typeof(Views.PerformancePage), "Repair"),
-            new("fans", "Fans", typeof(Views.FansPage), "Bullets"),
-            new("power", "Power", typeof(Views.PowerPage), "Calculator"),
-            new("thermal", "Thermal", typeof(Views.ThermalPage), "Like"),
-            new("scheduler", "Scheduler", typeof(Views.SchedulerPage), "Clock"),
-            new("devices", "Devices", typeof(Views.DevicesPage), "World"),
-            new("plugins", "Plugins", typeof(Views.PluginsPage), "Puzzle"),
-            new("profiles", "Profiles", typeof(Views.ProfilesPage), "Contact"),
-            new("diagnostics", "Diagnostics", typeof(Views.DiagnosticsPage), "Help"),
-            new("settings", "Settings", typeof(Views.SettingsPage), "Setting", IsFooter: true)
+            new BuiltInNavigationRoute("dashboard", "Dashboard", typeof(Views.DashboardPage), Microsoft.UI.Xaml.Controls.Symbol.Home),
+            new BuiltInNavigationRoute("performance", "Performance", typeof(Views.PerformancePage), Microsoft.UI.Xaml.Controls.Symbol.Repair),
+            new BuiltInNavigationRoute("fans", "Fans", typeof(Views.FansPage), Microsoft.UI.Xaml.Controls.Symbol.Bullets),
+            new BuiltInNavigationRoute("power", "Power", typeof(Views.PowerPage), Microsoft.UI.Xaml.Controls.Symbol.Calculator),
+            new BuiltInNavigationRoute("thermal", "Thermal", typeof(Views.ThermalPage), Microsoft.UI.Xaml.Controls.Symbol.Like),
+            new BuiltInNavigationRoute("scheduler", "Scheduler", typeof(Views.SchedulerPage), Microsoft.UI.Xaml.Controls.Symbol.Clock),
+            new BuiltInNavigationRoute("devices", "Devices", typeof(Views.DevicesPage), Microsoft.UI.Xaml.Controls.Symbol.World),
+            new BuiltInNavigationRoute("plugins", "Plugins", typeof(Views.PluginsPage), Microsoft.UI.Xaml.Controls.Symbol.Puzzle),
+            new BuiltInNavigationRoute("profiles", "Profiles", typeof(Views.ProfilesPage), Microsoft.UI.Xaml.Controls.Symbol.Contact),
+            new BuiltInNavigationRoute("diagnostics", "Diagnostics", typeof(Views.DiagnosticsPage), Microsoft.UI.Xaml.Controls.Symbol.Help),
+            new BuiltInNavigationRoute("settings", "Settings", typeof(Views.SettingsPage), Microsoft.UI.Xaml.Controls.Symbol.Setting, IsFooter: true)
         };
+
+    public event EventHandler? RoutesChanged;
 
     public IReadOnlyList<NavigationRoute> GetRoutes() => Routes;
 
@@ -28,5 +30,10 @@ public sealed class BuiltInNavigationRouteRegistry : INavigationRouteRegistry
     {
         return Routes.FirstOrDefault(route =>
             string.Equals(route.Tag, tag, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public void NotifyRoutesChanged()
+    {
+        RoutesChanged?.Invoke(this, EventArgs.Empty);
     }
 }

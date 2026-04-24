@@ -5,5 +5,5 @@ namespace Semcosm.HardwareConsole.Abstractions;
 public interface IPluginRegistry
 {
     IReadOnlyList<PluginDescriptor> GetInstalledPlugins();
-    string GetPluginState(string pluginId);
+    PluginState GetPluginState(string pluginId);
 }

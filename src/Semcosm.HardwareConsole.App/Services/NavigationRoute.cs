@@ -1,11 +1,9 @@
-using System;
-
 namespace Semcosm.HardwareConsole.App.Services;
 
-public sealed record NavigationRoute(
+public abstract record NavigationRoute(
     string Tag,
     string Title,
-    Type PageType,
-    string Icon,
+    NavigationRouteKind Kind,
+    string ProviderId,
     bool IsFooter = false,
     bool IsPluginProvided = false);

@@ -2,4 +2,9 @@ namespace Semcosm.HardwareConsole.Abstractions;
 
 public sealed record SensorValue(
     string SensorId,
-    string FormattedValue);
+    double? NumericValue,
+    string? TextValue,
+    string Unit,
+    string FormattedValue,
+    DateTimeOffset Timestamp,
+    SensorQuality Quality);

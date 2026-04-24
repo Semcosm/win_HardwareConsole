@@ -5,6 +5,8 @@ namespace Semcosm.HardwareConsole.Mock.Services;
 
 internal static class MockHardwareData
 {
+    private static readonly DateTimeOffset SnapshotTimestamp = DateTimeOffset.UtcNow;
+
     public static IReadOnlyList<HardwareCapability> Capabilities { get; } = new List<HardwareCapability>
     {
         new("cap.cpu.telemetry", "Sensor", "CPU Telemetry", "CPU temperature, power and frequency telemetry."),
@@ -89,31 +91,31 @@ internal static class MockHardwareData
 
     public static IReadOnlyList<SensorValue> CurrentSensorValues { get; } = new List<SensorValue>
     {
-        new("sensor.cpu.temperature", "82°C"),
-        new("sensor.cpu.package_power", "95W"),
-        new("sensor.cpu.clock", "4.8 GHz"),
-        new("sensor.cpu.power_limits", "PL1 90W / PL2 140W"),
-        new("sensor.cpu.status", "Performance"),
-        new("sensor.gpu.temperature", "76°C"),
-        new("sensor.gpu.board_power", "105W"),
-        new("sensor.gpu.clock", "2370 MHz"),
-        new("sensor.gpu.power_limit", "Power Limit 115W"),
-        new("sensor.gpu.status", "Boost"),
-        new("sensor.profile.active", "Performance"),
-        new("sensor.profile.summary", "AC power · fan curve · scheduler boost"),
-        new("sensor.profile.details", "Hardware write disabled in mock mode"),
-        new("sensor.profile.state", "Mock"),
-        new("sensor.fan.mode", "Curve controlled by Max(CPU, GPU)"),
-        new("sensor.fan.state", "Auto"),
-        new("sensor.fan.cpu_rpm", "CPU 4200 RPM"),
-        new("sensor.fan.gpu_rpm", "GPU 3900 RPM"),
-        new("sensor.fan.response", "Ramp-up 2s · Ramp-down 8s"),
-        new("sensor.power.state", "Plugged in"),
-        new("sensor.power.summary", "AC · High performance"),
-        new("sensor.power.details", "Processor boost enabled · EcoQoS for background"),
-        new("sensor.thermal.policy", "CPU target 92°C · GPU target 84°C"),
-        new("sensor.thermal.summary", "No emergency action active"),
-        new("sensor.thermal.state", "Normal")
+        NumericSensor("sensor.cpu.temperature", 82, "°C", "82°C"),
+        NumericSensor("sensor.cpu.package_power", 95, "W", "95W"),
+        NumericSensor("sensor.cpu.clock", 4.8, "GHz", "4.8 GHz"),
+        TextSensor("sensor.cpu.power_limits", "PL1 90W / PL2 140W"),
+        TextSensor("sensor.cpu.status", "Performance"),
+        NumericSensor("sensor.gpu.temperature", 76, "°C", "76°C"),
+        NumericSensor("sensor.gpu.board_power", 105, "W", "105W"),
+        NumericSensor("sensor.gpu.clock", 2370, "MHz", "2370 MHz"),
+        TextSensor("sensor.gpu.power_limit", "Power Limit 115W"),
+        TextSensor("sensor.gpu.status", "Boost"),
+        TextSensor("sensor.profile.active", "Performance"),
+        TextSensor("sensor.profile.summary", "AC power · fan curve · scheduler boost"),
+        TextSensor("sensor.profile.details", "Hardware write disabled in mock mode"),
+        TextSensor("sensor.profile.state", "Mock"),
+        TextSensor("sensor.fan.mode", "Curve controlled by Max(CPU, GPU)"),
+        TextSensor("sensor.fan.state", "Auto"),
+        NumericSensor("sensor.fan.cpu_rpm", 4200, "RPM", "CPU 4200 RPM"),
+        NumericSensor("sensor.fan.gpu_rpm", 3900, "RPM", "GPU 3900 RPM"),
+        TextSensor("sensor.fan.response", "Ramp-up 2s · Ramp-down 8s"),
+        TextSensor("sensor.power.state", "Plugged in"),
+        TextSensor("sensor.power.summary", "AC · High performance"),
+        TextSensor("sensor.power.details", "Processor boost enabled · EcoQoS for background"),
+        TextSensor("sensor.thermal.policy", "CPU target 92°C · GPU target 84°C"),
+        TextSensor("sensor.thermal.summary", "No emergency action active"),
+        TextSensor("sensor.thermal.state", "Normal")
     };
 
     public static IReadOnlyList<PluginDescriptor> InstalledPlugins { get; } = new List<PluginDescriptor>
@@ -172,14 +174,46 @@ internal static class MockHardwareData
             })
     };
 
-    public static string GetPluginState(string pluginId)
+    public static PluginState GetPluginState(string pluginId)
     {
         return pluginId switch
         {
-            "semcosm.windows.power" => "Enabled",
-            "semcosm.nvidia.nvapi" => "Mocked",
-            "semcosm.mechrevo.gm6px0x" => "Mocked",
-            _ => "Unknown"
+            "semcosm.windows.power" => PluginState.Enabled,
+            "semcosm.nvidia.nvapi" => PluginState.Mocked,
+            "semcosm.mechrevo.gm6px0x" => PluginState.Mocked,
+            _ => PluginState.Unknown
         };
+    }
+
+    private static SensorValue NumericSensor(
+        string sensorId,
+        double numericValue,
+        string unit,
+        string formattedValue,
+        SensorQuality quality = SensorQuality.Good)
+    {
+        return new SensorValue(
+            sensorId,
+            numericValue,
+            null,
+            unit,
+            formattedValue,
+            SnapshotTimestamp,
+            quality);
+    }
+
+    private static SensorValue TextSensor(
+        string sensorId,
+        string textValue,
+        SensorQuality quality = SensorQuality.Good)
+    {
+        return new SensorValue(
+            sensorId,
+            null,
+            textValue,
+            string.Empty,
+            textValue,
+            SnapshotTimestamp,
+            quality);
     }
 }

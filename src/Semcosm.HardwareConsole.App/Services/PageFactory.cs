@@ -13,6 +13,10 @@ public sealed class PageFactory : IPageFactory
 
     public Type? ResolvePageType(string route)
     {
-        return _routeRegistry.GetRoute(route)?.PageType;
+        return _routeRegistry.GetRoute(route) switch
+        {
+            BuiltInNavigationRoute builtInRoute => builtInRoute.PageType,
+            _ => null
+        };
     }
 }

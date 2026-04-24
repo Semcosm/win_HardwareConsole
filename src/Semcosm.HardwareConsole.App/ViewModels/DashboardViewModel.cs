@@ -21,7 +21,7 @@ public sealed class DashboardViewModel
 
         var sensorValues = sensorSnapshotProvider
             .GetCurrentSensorValues()
-            .ToDictionary(sensor => sensor.SensorId, sensor => sensor.FormattedValue);
+            .ToDictionary(sensor => sensor.SensorId);
 
         SummaryCards = new ObservableCollection<MetricCardModel>(
             BuildSummaryCards(devices, sensorValues));
@@ -32,7 +32,7 @@ public sealed class DashboardViewModel
 
     private static IReadOnlyList<MetricCardModel> BuildSummaryCards(
         IReadOnlyDictionary<string, DeviceDescriptor> devices,
-        IReadOnlyDictionary<string, string> sensorValues)
+        IReadOnlyDictionary<string, SensorValue> sensorValues)
     {
         return new List<MetricCardModel>
         {
@@ -64,7 +64,7 @@ public sealed class DashboardViewModel
     }
 
     private static IReadOnlyList<MetricCardModel> BuildDetailCards(
-        IReadOnlyDictionary<string, string> sensorValues)
+        IReadOnlyDictionary<string, SensorValue> sensorValues)
     {
         return new List<MetricCardModel>
         {
@@ -106,12 +106,12 @@ public sealed class DashboardViewModel
     }
 
     private static string GetSensorValue(
-        IReadOnlyDictionary<string, string> sensorValues,
+        IReadOnlyDictionary<string, SensorValue> sensorValues,
         string sensorId,
         string fallback = "Unknown")
     {
         return sensorValues.TryGetValue(sensorId, out var value)
-            ? value
+            ? value.FormattedValue
             : fallback;
     }
 }

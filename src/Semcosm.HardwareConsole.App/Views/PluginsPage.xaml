@@ -104,7 +104,7 @@
                         <controls:PluginCard
                             DisplayName="{Binding DisplayName}"
                             Id="{Binding Id}"
-                            State="{Binding State}"
+                            State="{Binding StateText}"
                             RiskLevel="{Binding RiskLevel}"
                             Vendor="{Binding Vendor}"
                             Version="{Binding Version}"
