@@ -16,7 +16,7 @@ public sealed class BuiltInNavigationRouteRegistry : INavigationRouteRegistry
             new BuiltInNavigationRoute("thermal", "Thermal", typeof(Views.ThermalPage), Microsoft.UI.Xaml.Controls.Symbol.Like),
             new BuiltInNavigationRoute("scheduler", "Scheduler", typeof(Views.SchedulerPage), Microsoft.UI.Xaml.Controls.Symbol.Clock),
             new BuiltInNavigationRoute("devices", "Devices", typeof(Views.DevicesPage), Microsoft.UI.Xaml.Controls.Symbol.World),
-            new BuiltInNavigationRoute("plugins", "Plugins", typeof(Views.PluginsPage), Microsoft.UI.Xaml.Controls.Symbol.Puzzle),
+            new BuiltInNavigationRoute("plugins", "Plugins", typeof(Views.PluginsPage), Microsoft.UI.Xaml.Controls.Symbol.Library),
             new BuiltInNavigationRoute("profiles", "Profiles", typeof(Views.ProfilesPage), Microsoft.UI.Xaml.Controls.Symbol.Contact),
             new BuiltInNavigationRoute("diagnostics", "Diagnostics", typeof(Views.DiagnosticsPage), Microsoft.UI.Xaml.Controls.Symbol.Help),
             new BuiltInNavigationRoute("settings", "Settings", typeof(Views.SettingsPage), Microsoft.UI.Xaml.Controls.Symbol.Setting, IsFooter: true)
