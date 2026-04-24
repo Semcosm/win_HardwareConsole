@@ -3,14 +3,16 @@
     x:Class="Semcosm.HardwareConsole.App.Controls.RiskBadge"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Semcosm.HardwareConsole.App.Controls"
+    x:DataType="local:RiskBadge"
     x:Name="Root">
 
     <Border
         Padding="10,4"
         CornerRadius="999"
-        Background="{x:Bind Root.BadgeBackground, Mode=OneWay}">
+        Background="{x:Bind BadgeBackground, Mode=OneWay}">
         <TextBlock
-            Text="{x:Bind Root.Text, Mode=OneWay}"
+            Text="{x:Bind Text, Mode=OneWay}"
             FontSize="12"
             FontWeight="SemiBold"
             Foreground="{ThemeResource TextFillColorPrimaryBrush}" />

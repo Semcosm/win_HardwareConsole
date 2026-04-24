@@ -3,6 +3,8 @@
     x:Class="Semcosm.HardwareConsole.App.Controls.CapabilityChip"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Semcosm.HardwareConsole.App.Controls"
+    x:DataType="local:CapabilityChip"
     x:Name="Root">
 
     <Border
@@ -10,7 +12,7 @@
         CornerRadius="999"
         Background="{ThemeResource LayerFillColorDefaultBrush}">
         <TextBlock
-            Text="{x:Bind Root.Text, Mode=OneWay}"
+            Text="{x:Bind Text, Mode=OneWay}"
             FontSize="12"
             Opacity="0.86" />
     </Border>

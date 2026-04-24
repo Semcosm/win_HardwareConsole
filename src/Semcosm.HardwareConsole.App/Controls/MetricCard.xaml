@@ -3,11 +3,13 @@
     x:Class="Semcosm.HardwareConsole.App.Controls.MetricCard"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Semcosm.HardwareConsole.App.Controls"
+    x:DataType="local:MetricCard"
     x:Name="Root">
 
     <Border
-        Width="{x:Bind Root.CardWidth, Mode=OneWay}"
-        MinHeight="{x:Bind Root.MinCardHeight, Mode=OneWay}"
+        Width="{x:Bind CardWidth, Mode=OneWay}"
+        MinHeight="{x:Bind MinCardHeight, Mode=OneWay}"
         Padding="20"
         CornerRadius="16"
         Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
@@ -21,12 +23,12 @@
 
                 <StackPanel Grid.Column="0" Spacing="8">
                     <TextBlock
-                        Text="{x:Bind Root.Title, Mode=OneWay}"
+                        Text="{x:Bind Title, Mode=OneWay}"
                         FontSize="20"
                         FontWeight="SemiBold" />
 
                     <TextBlock
-                        Text="{x:Bind Root.Subtitle, Mode=OneWay}"
+                        Text="{x:Bind Subtitle, Mode=OneWay}"
                         Opacity="0.7"
                         TextWrapping="Wrap" />
                 </StackPanel>
@@ -37,7 +39,7 @@
                     CornerRadius="999"
                     Background="{ThemeResource LayerFillColorDefaultBrush}">
                     <TextBlock
-                        Text="{x:Bind Root.Status, Mode=OneWay}"
+                        Text="{x:Bind Status, Mode=OneWay}"
                         FontSize="12"
                         FontWeight="SemiBold"
                         Opacity="0.86" />
@@ -45,11 +47,11 @@
             </Grid>
 
             <TextBlock
-                Text="{x:Bind Root.PrimaryValue, Mode=OneWay}"
-                FontSize="{x:Bind Root.PrimaryFontSize, Mode=OneWay}" />
+                Text="{x:Bind PrimaryValue, Mode=OneWay}"
+                FontSize="{x:Bind PrimaryFontSize, Mode=OneWay}" />
 
             <TextBlock
-                Text="{x:Bind Root.SecondaryValue, Mode=OneWay}"
+                Text="{x:Bind SecondaryValue, Mode=OneWay}"
                 Opacity="0.7"
                 TextWrapping="Wrap" />
         </StackPanel>
