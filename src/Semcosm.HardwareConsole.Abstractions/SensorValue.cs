@@ -7,4 +7,4 @@ public sealed record SensorValue(
     string Unit,
     string FormattedValue,
     DateTimeOffset Timestamp,
-    SensorQuality Quality);
+    ValueQuality Quality);

@@ -32,7 +32,9 @@ namespace Semcosm.HardwareConsole.App
             services.AddSingleton<IHardwareInventoryService, MockHardwareInventoryService>();
             services.AddSingleton<IPluginRegistry, MockPluginRegistry>();
             services.AddSingleton<ISensorSnapshotProvider, MockSensorSnapshotProvider>();
-            services.AddSingleton<INavigationRouteRegistry, BuiltInNavigationRouteRegistry>();
+            services.AddSingleton<INavigationRouteProvider, BuiltInNavigationRouteProvider>();
+            services.AddSingleton<INavigationRouteRegistry, CompositeNavigationRouteRegistry>();
+            services.AddSingleton<IRouteContentFactory, BuiltInPageRouteContentFactory>();
             services.AddSingleton<IPageFactory, PageFactory>();
             services.AddSingleton<INavigationService, NavigationService>();
             services.AddTransient<DashboardViewModel>();

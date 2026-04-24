@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Semcosm.HardwareConsole.App.Services;
 
-public sealed class BuiltInNavigationRouteRegistry : INavigationRouteRegistry
+public sealed class BuiltInNavigationRouteProvider : INavigationRouteProvider
 {
     private static readonly IReadOnlyList<NavigationRoute> Routes =
         new List<NavigationRoute>
@@ -25,12 +24,6 @@ public sealed class BuiltInNavigationRouteRegistry : INavigationRouteRegistry
     public event EventHandler? RoutesChanged;
 
     public IReadOnlyList<NavigationRoute> GetRoutes() => Routes;
-
-    public NavigationRoute? GetRoute(string tag)
-    {
-        return Routes.FirstOrDefault(route =>
-            string.Equals(route.Tag, tag, StringComparison.OrdinalIgnoreCase));
-    }
 
     public void NotifyRoutesChanged()
     {

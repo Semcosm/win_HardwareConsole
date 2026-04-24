@@ -190,7 +190,7 @@ internal static class MockHardwareData
         double numericValue,
         string unit,
         string formattedValue,
-        SensorQuality quality = SensorQuality.Good)
+        ValueQuality quality = ValueQuality.Good)
     {
         return new SensorValue(
             sensorId,
@@ -205,7 +205,7 @@ internal static class MockHardwareData
     private static SensorValue TextSensor(
         string sensorId,
         string textValue,
-        SensorQuality quality = SensorQuality.Good)
+        ValueQuality quality = ValueQuality.Good)
     {
         return new SensorValue(
             sensorId,

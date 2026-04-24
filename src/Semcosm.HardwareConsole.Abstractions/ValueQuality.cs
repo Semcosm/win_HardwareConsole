@@ -1,6 +1,6 @@
 namespace Semcosm.HardwareConsole.Abstractions;
 
-public enum SensorQuality
+public enum ValueQuality
 {
     Unknown,
     Good,

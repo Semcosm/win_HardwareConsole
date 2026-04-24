@@ -61,10 +61,12 @@ Mock provider
 Navigation flow:
 
 ```text
-NavigationRoute registry
-  -> page factory
-    -> navigation service
-      -> MainWindow / NavigationView
+Navigation route providers
+  -> composite route registry
+  -> route content factories
+    -> page factory
+      -> navigation service
+        -> MainWindow / NavigationView
 ```
 
 Current route model:
@@ -172,12 +174,18 @@ Built-in navigation is now table-driven through:
 - `src/Semcosm.HardwareConsole.App/Services/NavigationRoute.cs`
 - `src/Semcosm.HardwareConsole.App/Services/NavigationRouteKind.cs`
 - `src/Semcosm.HardwareConsole.App/Services/BuiltInNavigationRoute.cs`
+- `src/Semcosm.HardwareConsole.App/Services/INavigationRouteProvider.cs`
+- `src/Semcosm.HardwareConsole.App/Services/BuiltInNavigationRouteProvider.cs`
 - `src/Semcosm.HardwareConsole.App/Services/INavigationRouteRegistry.cs`
-- `src/Semcosm.HardwareConsole.App/Services/BuiltInNavigationRouteRegistry.cs`
+- `src/Semcosm.HardwareConsole.App/Services/CompositeNavigationRouteRegistry.cs`
+- `src/Semcosm.HardwareConsole.App/Services/IRouteContentFactory.cs`
+- `src/Semcosm.HardwareConsole.App/Services/BuiltInPageRouteContentFactory.cs`
 - `src/Semcosm.HardwareConsole.App/Services/PageFactory.cs`
 - `src/Semcosm.HardwareConsole.App/Services/NavigationService.cs`
 
-This keeps `MainWindow` free of page-type switches and makes room for a later plugin-provided route source. The registry also exposes `RoutesChanged` so the shell can rebuild menu items when route metadata changes.
+This keeps `MainWindow` free of page-type switches and makes room for a later plugin-provided route source. The shell now reads routes through a composite registry, so plugin routes can be added as separate providers instead of mutating the built-in route source. The registry still exposes `RoutesChanged` so the shell can rebuild menu items when route metadata changes.
+
+`PageFactory` no longer hard-codes route-kind handling directly. It now delegates route resolution through `IRouteContentFactory`, with only the built-in page implementation registered today. Plugin page hosts and external panel hosts are deliberately left for later.
 
 `NavigationService` is still a singleton single-window shell service. That is intentional for the current app shape, but it needs to move to a per-window navigation context before multi-window UI is introduced.
 

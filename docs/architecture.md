@@ -17,8 +17,10 @@ Responsibilities:
 Current navigation shape:
 
 ```text
-NavigationRoute registry
-  -> page factory
+Navigation route providers
+  -> composite route registry
+  -> route content factories
+    -> page factory
     -> navigation service
       -> MainWindow
 ```
@@ -31,6 +33,12 @@ Current route types:
 - future `PluginPage` routes: pages hosted from plugin-provided UI surfaces
 - future `ExternalPanel` routes: embedded extension panels or out-of-process UI hosts
 
+Current route-content boundary:
+
+- `IRouteContentFactory` is the extension point that maps a `NavigationRoute` to shell content
+- `BuiltInPageRouteContentFactory` currently handles `BuiltInNavigationRoute`
+- plugin page hosting and external panel hosting are intentionally not implemented yet, but now have a clear seam instead of being hidden inside `PageFactory`
+
 Current `NavigationService` scope:
 
 - singleton, single-window shell service
@@ -39,9 +47,11 @@ Current `NavigationService` scope:
 
 Current route registry behavior:
 
+- built-in routes currently come from `BuiltInNavigationRouteProvider`
+- `CompositeNavigationRouteRegistry` merges route providers into the shell-facing registry
 - the registry now exposes `RoutesChanged`
 - `MainWindow` rebuilds its menu when route metadata changes
-- built-in routes are still static today; dynamic plugin route contribution is the next layer, not already implemented
+- plugin route contribution is not implemented yet, but the registry no longer requires plugins to mutate the built-in route source directly
 
 ## Direction
 

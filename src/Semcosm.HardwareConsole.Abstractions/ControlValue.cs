@@ -7,4 +7,4 @@ public sealed record ControlValue(
     string Unit,
     string FormattedValue,
     DateTimeOffset Timestamp,
-    ControlQuality Quality);
+    ValueQuality Quality);
