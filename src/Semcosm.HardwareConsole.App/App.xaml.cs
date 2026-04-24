@@ -5,6 +5,10 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
+using Microsoft.Extensions.DependencyInjection;
+using Semcosm.HardwareConsole.Abstractions;
+using Semcosm.HardwareConsole.App.ViewModels;
+using Semcosm.HardwareConsole.Mock.Services;
 using Microsoft.UI.Xaml.Shapes;
 using System;
 using System.Collections.Generic;
@@ -26,6 +30,7 @@ namespace Semcosm.HardwareConsole.App
     /// </summary>
     public partial class App : Application
     {
+        private readonly IServiceProvider _serviceProvider;
         private Window? _window;
 
         /// <summary>
@@ -35,6 +40,23 @@ namespace Semcosm.HardwareConsole.App
         public App()
         {
             InitializeComponent();
+
+            var services = new ServiceCollection();
+            ConfigureServices(services);
+            _serviceProvider = services.BuildServiceProvider();
+        }
+
+        public static T GetService<T>() where T : notnull
+        {
+            return ((App)Current)._serviceProvider.GetRequiredService<T>();
+        }
+
+        private static void ConfigureServices(IServiceCollection services)
+        {
+            services.AddSingleton<IHardwareDataService, MockHardwareService>();
+            services.AddTransient<DashboardViewModel>();
+            services.AddTransient<PluginsViewModel>();
+            services.AddTransient<MainWindow>();
         }
 
         /// <summary>
@@ -43,7 +65,7 @@ namespace Semcosm.HardwareConsole.App
         /// <param name="args">Details about the launch request and process.</param>
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
-            _window = new MainWindow();
+            _window = GetService<MainWindow>();
             _window.Activate();
         }
     }

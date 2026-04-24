@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
+using Semcosm.HardwareConsole.Abstractions;
 using Semcosm.HardwareConsole.Abstractions.Models;
-using Semcosm.HardwareConsole.Mock.Services;
 
 namespace Semcosm.HardwareConsole.App.ViewModels;
 
@@ -9,14 +9,12 @@ public sealed class DashboardViewModel
     public ObservableCollection<MetricCardModel> SummaryCards { get; }
     public ObservableCollection<MetricCardModel> DetailCards { get; }
 
-    public DashboardViewModel()
+    public DashboardViewModel(IHardwareDataService hardwareDataService)
     {
-        var mockHardwareService = new MockHardwareService();
-
         SummaryCards = new ObservableCollection<MetricCardModel>(
-            mockHardwareService.GetDashboardSummaryCards());
+            hardwareDataService.GetDashboardSummaryCards());
 
         DetailCards = new ObservableCollection<MetricCardModel>(
-            mockHardwareService.GetDashboardDetailCards());
+            hardwareDataService.GetDashboardDetailCards());
     }
 }

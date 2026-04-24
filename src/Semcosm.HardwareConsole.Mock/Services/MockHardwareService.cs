@@ -4,7 +4,7 @@ using Semcosm.HardwareConsole.Abstractions.Models;
 
 namespace Semcosm.HardwareConsole.Mock.Services;
 
-public sealed class MockHardwareService
+public sealed class MockHardwareService : IHardwareDataService
 {
     public IReadOnlyList<MetricCardModel> GetDashboardSummaryCards()
     {

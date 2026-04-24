@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Linq;
+using Semcosm.HardwareConsole.Abstractions;
 using Semcosm.HardwareConsole.App.Models;
-using Semcosm.HardwareConsole.Mock.Services;
 
 namespace Semcosm.HardwareConsole.App.ViewModels;
 
@@ -9,15 +9,13 @@ public sealed class PluginsViewModel
 {
     public ObservableCollection<PluginManifestModel> InstalledPlugins { get; }
 
-    public PluginsViewModel()
+    public PluginsViewModel(IHardwareDataService hardwareDataService)
     {
-        var mockHardwareService = new MockHardwareService();
-
         InstalledPlugins = new ObservableCollection<PluginManifestModel>(
-            mockHardwareService
+            hardwareDataService
                 .GetInstalledPluginDescriptors()
                 .Select(descriptor => PluginManifestModel.FromDescriptor(
                     descriptor,
-                    mockHardwareService.GetInstalledPluginState(descriptor.Id))));
+                    hardwareDataService.GetInstalledPluginState(descriptor.Id))));
     }
 }
