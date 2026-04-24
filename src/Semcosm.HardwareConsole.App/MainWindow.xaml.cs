@@ -1,16 +1,20 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using System;
+using Semcosm.HardwareConsole.App.Services;
 
 namespace Semcosm.HardwareConsole.App
 {
     public sealed partial class MainWindow : Window
     {
-        public MainWindow()
+        private readonly INavigationService _navigationService;
+
+        public MainWindow(INavigationService navigationService)
         {
+            _navigationService = navigationService;
             InitializeComponent();
 
-            ContentFrame.Navigate(typeof(Views.DashboardPage));
+            _navigationService.Initialize(ContentFrame);
+            _navigationService.Navigate("dashboard");
             RootNavigationView.SelectedItem = RootNavigationView.MenuItems[0];
         }
 
@@ -23,27 +27,10 @@ namespace Semcosm.HardwareConsole.App
                 return;
             }
 
-            string? tag = selectedItem.Tag?.ToString();
-
-            Type? pageType = tag switch
+            string? route = selectedItem.Tag?.ToString();
+            if (!string.IsNullOrWhiteSpace(route))
             {
-                "dashboard" => typeof(Views.DashboardPage),
-                "performance" => typeof(Views.PerformancePage),
-                "fans" => typeof(Views.FansPage),
-                "power" => typeof(Views.PowerPage),
-                "thermal" => typeof(Views.ThermalPage),
-                "scheduler" => typeof(Views.SchedulerPage),
-                "devices" => typeof(Views.DevicesPage),
-                "plugins" => typeof(Views.PluginsPage),
-                "profiles" => typeof(Views.ProfilesPage),
-                "diagnostics" => typeof(Views.DiagnosticsPage),
-                "settings" => typeof(Views.SettingsPage),
-                _ => null
-            };
-
-            if (pageType is not null && ContentFrame.CurrentSourcePageType != pageType)
-            {
-                ContentFrame.Navigate(pageType);
+                _navigationService.Navigate(route);
             }
         }
     }

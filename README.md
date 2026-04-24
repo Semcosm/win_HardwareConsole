@@ -36,10 +36,16 @@ src/
     ViewModels/
     Views/
   Semcosm.HardwareConsole.Abstractions/
+    IHardwareInventoryService.cs
+    IPluginRegistry.cs
+    ISensorSnapshotProvider.cs
     PluginDescriptor.cs
     DeviceDescriptor.cs
     SensorDescriptor.cs
     ControlDescriptor.cs
+    SensorValue.cs
+    ControlValue.cs
+    HardwareCapability.cs
   Semcosm.HardwareConsole.Mock/
     Services/
 ```
@@ -47,7 +53,7 @@ src/
 Current UI flow:
 
 ```text
-Mock service
+Mock provider
   -> ViewModel
     -> WinUI page
 ```
@@ -67,8 +73,11 @@ Hardware plugin / platform adapter
 
 Backed by:
 
-- `src/Semcosm.HardwareConsole.Abstractions/Models/MetricCardModel.cs`
-- `src/Semcosm.HardwareConsole.Mock/Services/MockHardwareService.cs`
+- `src/Semcosm.HardwareConsole.App/Models/MetricCardModel.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/IHardwareInventoryService.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/ISensorSnapshotProvider.cs`
+- `src/Semcosm.HardwareConsole.Mock/Services/MockHardwareInventoryService.cs`
+- `src/Semcosm.HardwareConsole.Mock/Services/MockSensorSnapshotProvider.cs`
 - `src/Semcosm.HardwareConsole.App/ViewModels/DashboardViewModel.cs`
 - `src/Semcosm.HardwareConsole.App/Views/DashboardPage.xaml`
 
@@ -86,7 +95,8 @@ Shows mock summary and control-state cards for:
 Backed by:
 
 - `src/Semcosm.HardwareConsole.Abstractions/PluginDescriptor.cs`
-- `src/Semcosm.HardwareConsole.Mock/Services/MockHardwareService.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/IPluginRegistry.cs`
+- `src/Semcosm.HardwareConsole.Mock/Services/MockPluginRegistry.cs`
 - `src/Semcosm.HardwareConsole.App/Models/PluginManifestModel.cs`
 - `src/Semcosm.HardwareConsole.App/ViewModels/PluginsViewModel.cs`
 - `src/Semcosm.HardwareConsole.App/Views/PluginsPage.xaml`
@@ -115,6 +125,15 @@ PluginDescriptor
       -> PluginsPage
 ```
 
+Dashboard now follows a similar mapping pattern:
+
+```text
+DeviceDescriptor + SensorValue
+  -> MetricCardModel
+    -> DashboardViewModel
+      -> DashboardPage
+```
+
 ## Why This Shape
 
 The goal is to avoid tying the UI directly to a specific laptop brand, EC interface, or GPU vendor. Instead, device and control capabilities should come from plugins or adapters, while pages render from view models and capability metadata.
@@ -123,7 +142,7 @@ That keeps the UI stable when the backend evolves from mock data to real hardwar
 
 ## Run
 
-Open `src/Semcosm.HardwareConsole.App/Semcosm.HardwareConsole.App.slnx` in Visual Studio and run the WinUI project.
+Open `Semcosm.HardwareConsole.slnx` in Visual Studio and run the WinUI project.
 
 If your environment has the .NET SDK installed, you can also use:
 
@@ -135,5 +154,5 @@ dotnet build src/Semcosm.HardwareConsole.App/Semcosm.HardwareConsole.App.csproj
 
 - Build the `Profiles` page with the same `Model + Service + ViewModel + Binding` pattern
 - Introduce real plugin manifest loading
-- Split mock services behind interfaces where the first real provider is ready
+- Replace mock providers with real inventory, plugin registry and snapshot providers
 - Add reusable card controls and shared styles

@@ -10,7 +10,7 @@
 ## Next
 
 - build `Profiles` with the same `Model + Service + ViewModel + Binding` pattern
-- introduce service interfaces where mock and real providers should share a contract
+- replace mock inventory, registry and snapshot providers with real implementations
 - move reusable cards and presentation primitives into `Controls` and `Styles`
 - define plugin manifest loading and discovery flow
 - add tests after the abstraction seams settle

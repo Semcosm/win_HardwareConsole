@@ -9,13 +9,13 @@ public sealed class PluginsViewModel
 {
     public ObservableCollection<PluginManifestModel> InstalledPlugins { get; }
 
-    public PluginsViewModel(IHardwareDataService hardwareDataService)
+    public PluginsViewModel(IPluginRegistry pluginRegistry)
     {
         InstalledPlugins = new ObservableCollection<PluginManifestModel>(
-            hardwareDataService
-                .GetInstalledPluginDescriptors()
+            pluginRegistry
+                .GetInstalledPlugins()
                 .Select(descriptor => PluginManifestModel.FromDescriptor(
                     descriptor,
-                    hardwareDataService.GetInstalledPluginState(descriptor.Id))));
+                    pluginRegistry.GetPluginState(descriptor.Id))));
     }
 }

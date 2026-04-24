@@ -1,4 +1,4 @@
-namespace Semcosm.HardwareConsole.Abstractions.Models;
+namespace Semcosm.HardwareConsole.App.Models;
 
 public sealed class MetricCardModel
 {

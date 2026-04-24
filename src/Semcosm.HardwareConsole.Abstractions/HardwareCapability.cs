@@ -1,7 +1,7 @@
 namespace Semcosm.HardwareConsole.Abstractions;
 
-public sealed record CapabilityDescriptor(
+public sealed record HardwareCapability(
     string Id,
-    string DisplayName,
     string Category,
+    string DisplayName,
     string Description);

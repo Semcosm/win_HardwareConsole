@@ -11,8 +11,8 @@ Semcosm.HardwareConsole.App
 Responsibilities:
 
 - `App`: WinUI shell, pages, view models, navigation, page composition
-- `Abstractions`: shared UI-facing contracts and portable models
-- `Mock`: development-time data providers and fake hardware feeds
+- `Abstractions`: shared hardware contracts, descriptors, values, and provider interfaces
+- `Mock`: development-time implementations of inventory, plugin registry, and snapshot providers
 
 ## Direction
 
@@ -21,8 +21,8 @@ The repository is being shaped so that UI code depends on abstractions and data 
 Target flow:
 
 ```text
-real hardware adapter or plugin
-  -> service implementation
+real hardware adapter or plugin host
+  -> inventory / registry / snapshot provider
     -> view model
       -> WinUI page
 ```

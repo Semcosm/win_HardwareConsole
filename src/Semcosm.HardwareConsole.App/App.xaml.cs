@@ -7,9 +7,10 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Extensions.DependencyInjection;
 using Semcosm.HardwareConsole.Abstractions;
+using Semcosm.HardwareConsole.App.Services;
 using Semcosm.HardwareConsole.App.ViewModels;
-using Semcosm.HardwareConsole.Mock.Services;
 using Microsoft.UI.Xaml.Shapes;
+using Semcosm.HardwareConsole.Mock.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -53,7 +54,11 @@ namespace Semcosm.HardwareConsole.App
 
         private static void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IHardwareDataService, MockHardwareService>();
+            services.AddSingleton<IHardwareInventoryService, MockHardwareInventoryService>();
+            services.AddSingleton<IPluginRegistry, MockPluginRegistry>();
+            services.AddSingleton<ISensorSnapshotProvider, MockSensorSnapshotProvider>();
+            services.AddSingleton<IPageFactory, PageFactory>();
+            services.AddSingleton<INavigationService, NavigationService>();
             services.AddTransient<DashboardViewModel>();
             services.AddTransient<PluginsViewModel>();
             services.AddTransient<MainWindow>();
