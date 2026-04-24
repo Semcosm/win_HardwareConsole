@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Semcosm.HardwareConsole.app.Views.ProfilesPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <StackPanel Padding="32" Spacing="16">
+        <TextBlock Text="Profiles" FontSize="32" FontWeight="SemiBold" />
+        <TextBlock Text="Profile presets, switching rules and hardware policy bundles." Opacity="0.72" />
+    </StackPanel>
+</Page>

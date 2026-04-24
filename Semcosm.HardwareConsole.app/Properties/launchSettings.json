@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Semcosm.HardwareConsole.app (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "Semcosm.HardwareConsole.app (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

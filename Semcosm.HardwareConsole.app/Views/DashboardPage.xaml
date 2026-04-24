@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Semcosm.HardwareConsole.app.Views.DashboardPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer>
+        <StackPanel Padding="32" Spacing="24">
+            <StackPanel Spacing="8">
+                <TextBlock
+                    Text="Dashboard"
+                    FontSize="32"
+                    FontWeight="SemiBold" />
+
+                <TextBlock
+                    Text="System overview, active profile, sensors and hardware state."
+                    Opacity="0.72" />
+            </StackPanel>
+
+            <GridView
+                ItemsSource="{x:Bind ViewModel.SummaryCards, Mode=OneWay}"
+                SelectionMode="None"
+                IsItemClickEnabled="False">
+
+                <GridView.ItemContainerStyle>
+                    <Style TargetType="GridViewItem">
+                        <Setter Property="Padding" Value="0" />
+                        <Setter Property="Margin" Value="0,0,16,16" />
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    </Style>
+                </GridView.ItemContainerStyle>
+
+                <GridView.ItemTemplate>
+                    <DataTemplate>
+                        <Border
+                            Width="400"
+                            MinHeight="132"
+                            Padding="20"
+                            CornerRadius="16"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+
+                            <StackPanel Spacing="8">
+                                <TextBlock
+                                    Text="{Binding Title}"
+                                    FontSize="20"
+                                    FontWeight="SemiBold" />
+
+                                <TextBlock
+                                    Text="{Binding Subtitle}"
+                                    Opacity="0.7" />
+
+                                <TextBlock
+                                    Text="{Binding PrimaryValue}"
+                                    FontSize="24" />
+
+                                <TextBlock
+                                    Text="{Binding SecondaryValue}"
+                                    Opacity="0.7" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </GridView.ItemTemplate>
+            </GridView>
+
+            <TextBlock
+                Text="Control State"
+                FontSize="22"
+                FontWeight="SemiBold" />
+
+            <GridView
+                ItemsSource="{x:Bind ViewModel.DetailCards, Mode=OneWay}"
+                SelectionMode="None"
+                IsItemClickEnabled="False">
+
+                <GridView.ItemContainerStyle>
+                    <Style TargetType="GridViewItem">
+                        <Setter Property="Padding" Value="0" />
+                        <Setter Property="Margin" Value="0,0,16,16" />
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    </Style>
+                </GridView.ItemContainerStyle>
+
+                <GridView.ItemTemplate>
+                    <DataTemplate>
+                        <Border
+                            Width="620"
+                            MinHeight="132"
+                            Padding="20"
+                            CornerRadius="16"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+
+                            <StackPanel Spacing="8">
+                                <TextBlock
+                                    Text="{Binding Title}"
+                                    FontSize="20"
+                                    FontWeight="SemiBold" />
+
+                                <TextBlock
+                                    Text="{Binding Subtitle}"
+                                    Opacity="0.7" />
+
+                                <TextBlock
+                                    Text="{Binding PrimaryValue}"
+                                    FontSize="22" />
+
+                                <TextBlock
+                                    Text="{Binding SecondaryValue}"
+                                    Opacity="0.7" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </GridView.ItemTemplate>
+            </GridView>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

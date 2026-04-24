@@ -1,0 +1,5 @@
+.codex/
+.vs/
+bin/
+obj/
+*.user
