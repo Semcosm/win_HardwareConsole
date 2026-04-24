@@ -2,21 +2,16 @@
 <Page
     x:Class="Semcosm.HardwareConsole.App.Views.PluginsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Semcosm.HardwareConsole.App.Controls">
 
     <ScrollViewer>
         <StackPanel Padding="32" Spacing="24">
 
-            <StackPanel Spacing="8">
-                <TextBlock
-                    Text="Plugins"
-                    FontSize="32"
-                    FontWeight="SemiBold" />
-
-                <TextBlock
-                    Text="Hardware capability providers, policy extensions and device-specific control modules."
-                    Opacity="0.72" />
-            </StackPanel>
+            <controls:SectionHeader
+                Title="Plugins"
+                Description="Hardware capability providers, policy extensions and device-specific control modules."
+                TitleFontSize="32" />
 
             <Border
                 Padding="20"
@@ -24,15 +19,10 @@
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
 
                 <StackPanel Spacing="12">
-                    <TextBlock
-                        Text="Extension Model"
-                        FontSize="22"
-                        FontWeight="SemiBold" />
-
-                    <TextBlock
-                        Text="Plugins declare devices, sensors, controls, policies, capabilities and risk level. The UI is generated from capabilities instead of hard-coded device brands."
-                        TextWrapping="Wrap"
-                        Opacity="0.76" />
+                    <controls:SectionHeader
+                        Title="Extension Model"
+                        Description="Plugins declare devices, sensors, controls, policies, capabilities and risk level. The UI is generated from capabilities instead of hard-coded device brands."
+                        TitleFontSize="22" />
 
                     <Grid ColumnSpacing="12">
                         <Grid.ColumnDefinitions>
@@ -46,8 +36,13 @@
                             Padding="16"
                             CornerRadius="12"
                             Background="{ThemeResource LayerFillColorDefaultBrush}">
-                            <StackPanel Spacing="6">
+                            <StackPanel Spacing="10">
                                 <TextBlock Text="Hardware Plugin" FontWeight="SemiBold" />
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <controls:CapabilityChip Text="Sensors" />
+                                    <controls:CapabilityChip Text="Controls" />
+                                    <controls:CapabilityChip Text="Drivers" />
+                                </StackPanel>
                                 <TextBlock Text="Sensors, fan control, power limits, voltage controls, EC/WMI/SDK access." TextWrapping="Wrap" Opacity="0.72" />
                             </StackPanel>
                         </Border>
@@ -57,8 +52,13 @@
                             Padding="16"
                             CornerRadius="12"
                             Background="{ThemeResource LayerFillColorDefaultBrush}">
-                            <StackPanel Spacing="6">
+                            <StackPanel Spacing="10">
                                 <TextBlock Text="Policy Plugin" FontWeight="SemiBold" />
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <controls:CapabilityChip Text="Curves" />
+                                    <controls:CapabilityChip Text="Rules" />
+                                    <controls:CapabilityChip Text="Automation" />
+                                </StackPanel>
                                 <TextBlock Text="Fan curves, thermal chains, scheduler rules, profile automation." TextWrapping="Wrap" Opacity="0.72" />
                             </StackPanel>
                         </Border>
@@ -68,8 +68,13 @@
                             Padding="16"
                             CornerRadius="12"
                             Background="{ThemeResource LayerFillColorDefaultBrush}">
-                            <StackPanel Spacing="6">
+                            <StackPanel Spacing="10">
                                 <TextBlock Text="UI Extension" FontWeight="SemiBold" />
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <controls:CapabilityChip Text="Pages" />
+                                    <controls:CapabilityChip Text="Cards" />
+                                    <controls:CapabilityChip Text="Device UX" />
+                                </StackPanel>
                                 <TextBlock Text="Optional device-specific pages and cards for advanced hardware." TextWrapping="Wrap" Opacity="0.72" />
                             </StackPanel>
                         </Border>
@@ -77,10 +82,10 @@
                 </StackPanel>
             </Border>
 
-            <TextBlock
-                Text="Installed Plugins"
-                FontSize="22"
-                FontWeight="SemiBold" />
+            <controls:SectionHeader
+                Title="Installed Plugins"
+                Description="Loaded extensions are rendered through a shared plugin card so Dashboard, Devices and Profiles can reuse the same visual language later."
+                TitleFontSize="22" />
 
             <ListView
                 ItemsSource="{x:Bind ViewModel.InstalledPlugins, Mode=OneWay}"
@@ -96,62 +101,16 @@
 
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <Border
-                            Padding="20"
-                            CornerRadius="16"
-                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
-
-                            <Grid ColumnSpacing="20">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="2*" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-
-                                <StackPanel Grid.Column="0" Spacing="8">
-                                    <TextBlock
-                                        Text="{Binding DisplayName}"
-                                        FontSize="20"
-                                        FontWeight="SemiBold" />
-
-                                    <TextBlock
-                                        Text="{Binding Id}"
-                                        FontFamily="Consolas"
-                                        Opacity="0.68" />
-
-                                    <TextBlock
-                                        Text="{Binding MatchedDeviceSummary}"
-                                        TextWrapping="Wrap"
-                                        Opacity="0.76" />
-
-                                    <TextBlock
-                                        Text="{Binding CapabilitySummary}"
-                                        TextWrapping="Wrap"
-                                        Opacity="0.76" />
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="1" Spacing="10">
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <TextBlock Text="State:" Opacity="0.68" />
-                                        <TextBlock Text="{Binding State}" FontWeight="SemiBold" />
-                                    </StackPanel>
-
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <TextBlock Text="Risk:" Opacity="0.68" />
-                                        <TextBlock Text="{Binding RiskLevelText}" FontWeight="SemiBold" />
-                                    </StackPanel>
-
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <TextBlock Text="Vendor:" Opacity="0.68" />
-                                        <TextBlock Text="{Binding Vendor}" />
-                                    </StackPanel>
-
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <TextBlock Text="Version:" Opacity="0.68" />
-                                        <TextBlock Text="{Binding Version}" />
-                                    </StackPanel>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
+                        <controls:PluginCard
+                            DisplayName="{Binding DisplayName}"
+                            Id="{Binding Id}"
+                            State="{Binding State}"
+                            RiskLevel="{Binding RiskLevel}"
+                            Vendor="{Binding Vendor}"
+                            Version="{Binding Version}"
+                            CapabilitySummary="{Binding CapabilitySummary}"
+                            MatchedDeviceSummary="{Binding MatchedDeviceSummary}"
+                            Capabilities="{Binding Capabilities}" />
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
