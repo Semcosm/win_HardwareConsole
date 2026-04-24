@@ -13,23 +13,6 @@
         IsSettingsVisible="False"
         SelectionChanged="RootNavigationView_SelectionChanged">
 
-        <muxc:NavigationView.MenuItems>
-            <muxc:NavigationViewItem Content="Dashboard" Tag="dashboard" />
-            <muxc:NavigationViewItem Content="Performance" Tag="performance" />
-            <muxc:NavigationViewItem Content="Fans" Tag="fans" />
-            <muxc:NavigationViewItem Content="Power" Tag="power" />
-            <muxc:NavigationViewItem Content="Thermal" Tag="thermal" />
-            <muxc:NavigationViewItem Content="Scheduler" Tag="scheduler" />
-            <muxc:NavigationViewItem Content="Devices" Tag="devices" />
-            <muxc:NavigationViewItem Content="Plugins" Tag="plugins" />
-            <muxc:NavigationViewItem Content="Profiles" Tag="profiles" />
-            <muxc:NavigationViewItem Content="Diagnostics" Tag="diagnostics" />
-        </muxc:NavigationView.MenuItems>
-
-        <muxc:NavigationView.FooterMenuItems>
-            <muxc:NavigationViewItem Content="Settings" Tag="settings" />
-        </muxc:NavigationView.FooterMenuItems>
-
         <Frame x:Name="ContentFrame" />
     </muxc:NavigationView>
 </Window>

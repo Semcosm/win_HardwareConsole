@@ -14,6 +14,17 @@ Responsibilities:
 - `Abstractions`: shared hardware contracts, descriptors, values, and provider interfaces
 - `Mock`: development-time implementations of inventory, plugin registry, and snapshot providers
 
+Current navigation shape:
+
+```text
+NavigationRoute registry
+  -> page factory
+    -> navigation service
+      -> MainWindow
+```
+
+This keeps page registration centralized and makes it possible to add plugin-provided routes later without putting more `switch` logic into the shell.
+
 ## Direction
 
 The repository is being shaped so that UI code depends on abstractions and data providers rather than device-specific implementations.

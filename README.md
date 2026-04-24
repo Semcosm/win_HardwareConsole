@@ -58,6 +58,15 @@ Mock provider
     -> WinUI page
 ```
 
+Navigation flow:
+
+```text
+NavigationRoute registry
+  -> page factory
+    -> navigation service
+      -> MainWindow / NavigationView
+```
+
 This is the intended direction for the real app as well:
 
 ```text
@@ -138,7 +147,7 @@ DeviceDescriptor + SensorValue
 
 The goal is to avoid tying the UI directly to a specific laptop brand, EC interface, or GPU vendor. Instead, device and control capabilities should come from plugins or adapters, while pages render from view models and capability metadata.
 
-That keeps the UI stable when the backend evolves from mock data to real hardware access.
+That keeps the UI stable when the backend evolves from mock data to real hardware access. The same rule now applies to navigation: the shell reads built-in routes from a registry instead of hard-coding page switches in `MainWindow`.
 
 ## Run
 
@@ -150,9 +159,27 @@ If your environment has the .NET SDK installed, you can also use:
 dotnet build src/Semcosm.HardwareConsole.App/Semcosm.HardwareConsole.App.csproj
 ```
 
+## Navigation
+
+Built-in navigation is now table-driven through:
+
+- `src/Semcosm.HardwareConsole.App/Services/NavigationRoute.cs`
+- `src/Semcosm.HardwareConsole.App/Services/INavigationRouteRegistry.cs`
+- `src/Semcosm.HardwareConsole.App/Services/BuiltInNavigationRouteRegistry.cs`
+- `src/Semcosm.HardwareConsole.App/Services/PageFactory.cs`
+- `src/Semcosm.HardwareConsole.App/Services/NavigationService.cs`
+
+This keeps `MainWindow` free of page-type switches and makes room for a later plugin-provided route source.
+
+## Publish Notes
+
+`PublishTrimmed` is currently forced to `false`.
+
+That is intentional while the project is still using WinUI, XAML, DI, and future plugin-loading paths that are sensitive to trimming. Release trimming should only come back after publish validation and plugin-loading tests exist.
+
 ## Next Suggested Steps
 
 - Build the `Profiles` page with the same `Model + Service + ViewModel + Binding` pattern
 - Introduce real plugin manifest loading
 - Replace mock providers with real inventory, plugin registry and snapshot providers
-- Add reusable card controls and shared styles
+- Add a plugin route provider that can contribute pages to the navigation registry
