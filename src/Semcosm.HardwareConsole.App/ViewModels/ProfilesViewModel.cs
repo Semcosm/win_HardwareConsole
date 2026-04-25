@@ -4,18 +4,39 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Semcosm.HardwareConsole.Abstractions;
 using Semcosm.HardwareConsole.App.Models;
+using Semcosm.HardwareConsole.App.Services;
 
 namespace Semcosm.HardwareConsole.App.ViewModels;
 
 public sealed class ProfilesViewModel : INotifyPropertyChanged
 {
-    private readonly IReadOnlyDictionary<string, ControlDescriptor> _controls;
-    private readonly IReadOnlyDictionary<string, DeviceDescriptor> _devices;
+    private readonly ProfilePresentationMapper _presentationMapper;
     private readonly IProfileRuntimeService _profileRuntimeService;
     private ProfileCardModel? _activeProfile;
+    private string _confirmationBannerText = string.Empty;
+    private string _confirmationCheckText = string.Empty;
+    private bool _isApplyConfirmed;
     private ProfilePreviewModel _preview = ProfilePreviewModel.CreateEmpty();
+    private string? _previewProfileId;
+    private bool _showConfirmationGate;
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    public ProfilesViewModel(
+        ProfilePresentationMapper presentationMapper,
+        IProfileRuntimeService profileRuntimeService)
+    {
+        _presentationMapper = presentationMapper;
+        _profileRuntimeService = profileRuntimeService;
+
+        RefreshProfiles();
+
+        var activeProfile = _profileRuntimeService.GetActiveProfile();
+        if (activeProfile is not null)
+        {
+            PreviewProfile(activeProfile.Id);
+        }
+    }
 
     public ObservableCollection<ProfileCardModel> BuiltInProfiles { get; } = new();
     public ObservableCollection<ProfileCardModel> CustomProfiles { get; } = new();
@@ -33,40 +54,80 @@ public sealed class ProfilesViewModel : INotifyPropertyChanged
         private set => SetProperty(ref _preview, value);
     }
 
-    public ProfilesViewModel(
-        IHardwareInventoryService hardwareInventoryService,
-        IProfileRuntimeService profileRuntimeService)
+    public bool ShowConfirmationGate
     {
-        _profileRuntimeService = profileRuntimeService;
-        _controls = BuildControlMap(hardwareInventoryService.GetControls());
-        _devices = BuildDeviceMap(hardwareInventoryService.GetDevices());
+        get => _showConfirmationGate;
+        private set => SetProperty(ref _showConfirmationGate, value);
+    }
 
-        RefreshProfiles();
+    public string ConfirmationBannerText
+    {
+        get => _confirmationBannerText;
+        private set => SetProperty(ref _confirmationBannerText, value);
+    }
 
-        var activeProfile = _profileRuntimeService.GetActiveProfile();
-        if (activeProfile is not null)
+    public string ConfirmationCheckText
+    {
+        get => _confirmationCheckText;
+        private set => SetProperty(ref _confirmationCheckText, value);
+    }
+
+    public bool IsApplyConfirmed
+    {
+        get => _isApplyConfirmed;
+        set
         {
-            PreviewProfile(activeProfile.Id);
+            if (SetProperty(ref _isApplyConfirmed, value))
+            {
+                RefreshProfiles();
+            }
         }
     }
 
     public void PreviewProfile(string profileId)
     {
+        _previewProfileId = profileId;
+        SetApplyConfirmed(false, refreshProfiles: false);
+
         var preview = _profileRuntimeService.PreviewProfile(profileId);
-        UpdatePreview(preview.Profile, preview.Actions, preview.RequiresConfirmation, preview.Message);
+
+        UpdatePreview(preview);
+        UpdateConfirmationState(preview.Profile);
+        RefreshProfiles();
     }
 
     public void ApplyProfile(string profileId)
     {
-        var applyResult = _profileRuntimeService.ApplyProfile(profileId, ProfileApplyMode.Activate);
+        var profile = FindProfile(profileId);
+        var requiresConfirmation = profile is not null && _presentationMapper.RequiresConfirmation(profile);
+        var useConfirmedMode = requiresConfirmation
+            && IsApplyConfirmed
+            && string.Equals(_previewProfileId, profileId);
+
+        var applyResult = _profileRuntimeService.ApplyProfile(
+            profileId,
+            useConfirmedMode ? ProfileApplyMode.ActivateConfirmed : ProfileApplyMode.Activate);
+
+        _previewProfileId = profileId;
+        UpdateApplyPreview(profile, applyResult);
+
+        if (applyResult.Success)
+        {
+            SetApplyConfirmed(false, refreshProfiles: false);
+            UpdateConfirmationState(null);
+        }
+        else if (applyResult.FailureCode == ProfileApplyFailureCode.ConfirmationRequired)
+        {
+            SetApplyConfirmed(false, refreshProfiles: false);
+            UpdateConfirmationState(profile);
+        }
+        else
+        {
+            SetApplyConfirmed(false, refreshProfiles: false);
+            UpdateConfirmationState(null);
+        }
 
         RefreshProfiles();
-
-        UpdatePreview(
-            applyResult.ActiveProfile,
-            applyResult.WouldSetActions,
-            applyResult.RequiresConfirmation,
-            applyResult.Message);
     }
 
     private void RefreshProfiles()
@@ -76,39 +137,21 @@ public sealed class ProfilesViewModel : INotifyPropertyChanged
 
         RebuildCards(BuiltInProfiles, FilterProfilesByKind(availableProfiles, ProfileKind.BuiltIn), activeProfile?.Id);
         RebuildCards(CustomProfiles, FilterProfilesByOtherKinds(availableProfiles), activeProfile?.Id);
-        ActiveProfile = activeProfile is null ? null : BuildProfileCard(activeProfile, activeProfile.Id);
+        ActiveProfile = activeProfile is null
+            ? null
+            : _presentationMapper.MapProfileCard(activeProfile, activeProfile.Id, CanApplyProfile(activeProfile));
     }
 
-    private void UpdatePreview(
-        ProfileDescriptor? profile,
-        IReadOnlyList<ProfileControlActionDescriptor> actions,
-        bool requiresConfirmation,
-        string message)
+    private void UpdatePreview(ProfilePreview preview)
     {
-        PreviewActions.Clear();
+        RebuildPreviewActions(preview.Actions);
+        Preview = _presentationMapper.MapPreview(preview);
+    }
 
-        if (profile is null)
-        {
-            Preview = ProfilePreviewModel.CreateEmpty();
-            return;
-        }
-
-        foreach (var action in actions)
-        {
-            PreviewActions.Add(BuildActionRow(action));
-        }
-
-        Preview = new ProfilePreviewModel
-        {
-            ShowEmptyState = false,
-            Title = profile.DisplayName,
-            Description = profile.Description,
-            StatusText = message,
-            SourceText = GetProfileKindText(profile.Kind),
-            RiskLevel = profile.RiskLevel,
-            RequiresConfirmation = requiresConfirmation,
-            ConfirmationText = requiresConfirmation ? "Requires confirmation" : string.Empty
-        };
+    private void UpdateApplyPreview(ProfileDescriptor? profile, ProfileApplyResult applyResult)
+    {
+        RebuildPreviewActions(applyResult.WouldSetActions);
+        Preview = _presentationMapper.MapApplyResult(profile, applyResult);
     }
 
     private void RebuildCards(
@@ -120,76 +163,56 @@ public sealed class ProfilesViewModel : INotifyPropertyChanged
 
         foreach (var profile in profiles)
         {
-            target.Add(BuildProfileCard(profile, activeProfileId));
+            target.Add(_presentationMapper.MapProfileCard(profile, activeProfileId, CanApplyProfile(profile)));
         }
     }
 
-    private ProfileCardModel BuildProfileCard(ProfileDescriptor profile, string? activeProfileId)
+    private void RebuildPreviewActions(IReadOnlyList<ProfileControlActionDescriptor> actions)
     {
-        var requiresConfirmation = RequiresConfirmation(profile);
+        PreviewActions.Clear();
 
-        return new ProfileCardModel
+        foreach (var action in actions)
         {
-            Id = profile.Id,
-            DisplayName = profile.DisplayName,
-            Description = profile.Description,
-            RiskLevel = profile.RiskLevel,
-            SourceText = GetProfileKindText(profile.Kind),
-            CapabilityCountText = FormatCount(profile.CapabilityIds.Count, "capability"),
-            ActionCountText = FormatCount(profile.Actions.Count, "control target"),
-            PolicyCountText = FormatCount(profile.PolicyIds.Count, "policy"),
-            RequiresConfirmation = requiresConfirmation,
-            ConfirmationText = requiresConfirmation ? "Requires confirmation" : string.Empty,
-            IsActive = string.Equals(profile.Id, activeProfileId)
-        };
+            PreviewActions.Add(_presentationMapper.MapAction(action));
+        }
     }
 
-    private ProfileActionRowModel BuildActionRow(ProfileControlActionDescriptor action)
+    private void UpdateConfirmationState(ProfileDescriptor? profile)
     {
-        var controlDisplayName = _controls.TryGetValue(action.ControlId, out var control)
-            ? control.DisplayName
-            : action.ControlId;
-
-        var deviceDisplayName = control is not null && _devices.TryGetValue(control.DeviceId, out var device)
-            ? device.DisplayName
-            : "Unknown device";
-
-        return new ProfileActionRowModel
+        if (profile is not null && _presentationMapper.RequiresConfirmation(profile))
         {
-            ControlId = action.ControlId,
-            DisplayName = controlDisplayName,
-            Subtitle = $"{deviceDisplayName} · {action.ControlId}",
-            TargetValue = action.TargetValue.FormattedValue,
-            RiskLevel = MapRiskLevel(action.RiskLevel),
-            RequiresConfirmation = action.RequiresConfirmation,
-            ConfirmationText = action.RequiresConfirmation ? "Confirm" : string.Empty
-        };
-    }
-
-    private static IReadOnlyDictionary<string, ControlDescriptor> BuildControlMap(
-        IReadOnlyList<ControlDescriptor> controls)
-    {
-        var map = new Dictionary<string, ControlDescriptor>();
-
-        foreach (var control in controls)
-        {
-            map[control.Id] = control;
+            ShowConfirmationGate = true;
+            ConfirmationBannerText = _presentationMapper.GetConfirmationBannerText(profile);
+            ConfirmationCheckText = _presentationMapper.GetConfirmationCheckText(profile);
+            return;
         }
 
-        return map;
+        ShowConfirmationGate = false;
+        ConfirmationBannerText = string.Empty;
+        ConfirmationCheckText = string.Empty;
     }
 
-    private static IReadOnlyDictionary<string, DeviceDescriptor> BuildDeviceMap(
-        IReadOnlyList<DeviceDescriptor> devices)
+    private bool CanApplyProfile(ProfileDescriptor profile)
     {
-        var map = new Dictionary<string, DeviceDescriptor>();
-
-        foreach (var device in devices)
+        if (!_presentationMapper.RequiresConfirmation(profile))
         {
-            map[device.Id] = device;
+            return true;
         }
 
-        return map;
+        return string.Equals(_previewProfileId, profile.Id) && IsApplyConfirmed;
+    }
+
+    private ProfileDescriptor? FindProfile(string profileId)
+    {
+        foreach (var profile in _profileRuntimeService.GetAvailableProfiles())
+        {
+            if (string.Equals(profile.Id, profileId))
+            {
+                return profile;
+            }
+        }
+
+        return null;
     }
 
     private static IEnumerable<ProfileDescriptor> FilterProfilesByKind(
@@ -217,56 +240,23 @@ public sealed class ProfilesViewModel : INotifyPropertyChanged
         }
     }
 
-    private static bool RequiresConfirmation(ProfileDescriptor profile)
+    private void SetApplyConfirmed(bool value, bool refreshProfiles)
     {
-        foreach (var action in profile.Actions)
+        if (SetProperty(ref _isApplyConfirmed, value, nameof(IsApplyConfirmed)) && refreshProfiles)
         {
-            if (action.RequiresConfirmation)
-            {
-                return true;
-            }
+            RefreshProfiles();
         }
-
-        return false;
     }
 
-    private static string GetProfileKindText(ProfileKind kind)
-    {
-        return kind switch
-        {
-            ProfileKind.BuiltIn => "Built-in",
-            ProfileKind.User => "User",
-            ProfileKind.DeviceProvided => "Device Provided",
-            ProfileKind.PluginProvided => "Plugin Provided",
-            _ => "Unknown"
-        };
-    }
-
-    private static HardwareRiskLevel MapRiskLevel(ControlRiskLevel riskLevel)
-    {
-        return riskLevel switch
-        {
-            ControlRiskLevel.SafeControl => HardwareRiskLevel.SafeControl,
-            ControlRiskLevel.HardwareWrite => HardwareRiskLevel.HardwareWrite,
-            ControlRiskLevel.KernelDriverRequired => HardwareRiskLevel.KernelDriverRequired,
-            ControlRiskLevel.Experimental => HardwareRiskLevel.Experimental,
-            _ => HardwareRiskLevel.ReadOnly
-        };
-    }
-
-    private static string FormatCount(int count, string singular)
-    {
-        return count == 1 ? $"1 {singular}" : $"{count} {singular}s";
-    }
-
-    private void SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+    private bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
         if (EqualityComparer<T>.Default.Equals(field, value))
         {
-            return;
+            return false;
         }
 
         field = value;
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        return true;
     }
 }

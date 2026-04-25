@@ -65,7 +65,8 @@
 
                 <Button
                     Grid.Column="1"
-                    Content="Apply"
+                    Content="Apply Mock Profile"
+                    IsEnabled="{x:Bind IsApplyEnabled, Mode=OneWay}"
                     Click="ApplyButton_Click" />
             </Grid>
         </StackPanel>

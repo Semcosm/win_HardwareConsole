@@ -48,34 +48,80 @@ public sealed class MockProfileRuntimeService : IProfileRuntimeService
         {
             return new ProfileApplyResult(
                 false,
-                GetActiveProfile(),
-                Array.Empty<ProfileControlActionDescriptor>(),
+                profileId,
                 mode,
-                false,
-                false,
-                "Profile not found.");
+                "Profile not found.",
+                ProfileApplyFailureCode.UnknownProfile,
+                Array.Empty<ProfileControlActionDescriptor>(),
+                Array.Empty<ProfileControlActionDescriptor>(),
+                Array.Empty<ProfileControlActionDescriptor>(),
+                new[] { $"Mock runtime could not find profile '{profileId}'." });
         }
 
-        if (mode == ProfileApplyMode.Activate)
+        if (mode == ProfileApplyMode.Simulate)
         {
-            _activeProfileId = profile.Id;
-            StateChanged?.Invoke(this, EventArgs.Empty);
+            return new ProfileApplyResult(
+                true,
+                profile.Id,
+                mode,
+                "Simulation only. Active profile was not changed and no real hardware write was performed.",
+                ProfileApplyFailureCode.None,
+                profile.Actions,
+                Array.Empty<ProfileControlActionDescriptor>(),
+                Array.Empty<ProfileControlActionDescriptor>(),
+                new[]
+                {
+                    "Mock runtime simulation only.",
+                    "No real hardware write was performed."
+                });
         }
+
+        if (RequiresConfirmation(profile) && mode != ProfileApplyMode.ActivateConfirmed)
+        {
+            return new ProfileApplyResult(
+                false,
+                profile.Id,
+                mode,
+                "Preview and confirmation are required before applying this mock hardware-write profile.",
+                ProfileApplyFailureCode.ConfirmationRequired,
+                profile.Actions,
+                Array.Empty<ProfileControlActionDescriptor>(),
+                GetBlockedActions(profile),
+                new[]
+                {
+                    "This profile is confirmation-gated in the mock runtime.",
+                    "No real hardware write was performed."
+                });
+        }
+
+        _activeProfileId = profile.Id;
+        StateChanged?.Invoke(this, EventArgs.Empty);
 
         return new ProfileApplyResult(
             true,
-            mode == ProfileApplyMode.Activate ? profile : GetActiveProfile(),
-            profile.Actions,
+            profile.Id,
             mode,
-            false,
-            RequiresConfirmation(profile),
-            mode == ProfileApplyMode.Activate
-                ? "Mock runtime updated. Active profile changed without writing real hardware."
-                : "Simulation only. Active profile was not changed.");
+            "Mock runtime updated. Active profile changed without writing real hardware.",
+            ProfileApplyFailureCode.None,
+            profile.Actions,
+            profile.Actions,
+            Array.Empty<ProfileControlActionDescriptor>(),
+            new[]
+            {
+                "Mock runtime active profile changed.",
+                "No real hardware write was performed."
+            });
     }
 
     private static bool RequiresConfirmation(ProfileDescriptor profile)
     {
+        if (profile.RiskLevel is HardwareRiskLevel.HardwareWrite
+            or HardwareRiskLevel.KernelDriverRequired
+            or HardwareRiskLevel.Experimental)
+        {
+            return true;
+        }
+
         foreach (var action in profile.Actions)
         {
             if (action.RequiresConfirmation)
@@ -85,5 +131,23 @@ public sealed class MockProfileRuntimeService : IProfileRuntimeService
         }
 
         return false;
+    }
+
+    private static IReadOnlyList<ProfileControlActionDescriptor> GetBlockedActions(ProfileDescriptor profile)
+    {
+        var blockedActions = new List<ProfileControlActionDescriptor>();
+
+        foreach (var action in profile.Actions)
+        {
+            if (action.RequiresConfirmation
+                || action.RiskLevel is ControlRiskLevel.HardwareWrite
+                    or ControlRiskLevel.KernelDriverRequired
+                    or ControlRiskLevel.Experimental)
+            {
+                blockedActions.Add(action);
+            }
+        }
+
+        return blockedActions.Count == 0 ? profile.Actions : blockedActions;
     }
 }

@@ -175,6 +175,7 @@ Backed by:
 - `src/Semcosm.HardwareConsole.Abstractions/ProfileControlActionDescriptor.cs`
 - `src/Semcosm.HardwareConsole.Abstractions/IProfileRuntimeService.cs`
 - `src/Semcosm.HardwareConsole.Mock/Services/MockProfileRuntimeService.cs`
+- `src/Semcosm.HardwareConsole.App/Services/ProfilePresentationMapper.cs`
 - `src/Semcosm.HardwareConsole.App/ViewModels/ProfilesViewModel.cs`
 - `src/Semcosm.HardwareConsole.App/Views/ProfilesPage.xaml`
 
@@ -183,6 +184,8 @@ Shows:
 - current active profile from runtime state
 - built-in and custom/mock provided profiles
 - preview of the controls a profile would target
+- structured mock apply results for future diagnostics and failure handling
+- preview + explicit confirmation gates for high-risk mock profiles before apply is enabled
 - mock apply behavior that updates runtime state without writing real hardware
 
 Current profile runtime shape:
@@ -201,7 +204,7 @@ The goal is to avoid tying the UI directly to a specific laptop brand, EC interf
 
 That keeps the UI stable when the backend evolves from mock data to real hardware access. The same rule now applies to navigation: the shell reads built-in routes from a registry instead of hard-coding page switches in `MainWindow`.
 
-Profiles now follow the same separation: inventory still describes what profiles exist, while `IProfileRuntimeService` owns which profile is active, what a profile would do, and mock apply results.
+Profiles now follow the same separation: inventory still describes what profiles exist, `IProfileRuntimeService` owns which profile is active and what a profile would do, and `ProfilePresentationMapper` maps profile/runtime contracts into the UI models used by the page.
 
 ## Run
 
@@ -210,7 +213,7 @@ Open `Semcosm.HardwareConsole.slnx` in Visual Studio and run the WinUI project.
 If your environment has the .NET SDK installed, you can also use:
 
 ```bash
-dotnet build src/Semcosm.HardwareConsole.App/Semcosm.HardwareConsole.App.csproj
+dotnet build Semcosm.HardwareConsole.slnx
 ```
 
 ## Navigation
@@ -252,7 +255,8 @@ That is intentional while the project is still using WinUI, XAML, DI, and future
 `Profiles` currently uses a mock runtime only.
 
 - `Preview` shows which controls a profile intends to target
-- `Apply` updates mock runtime state and Dashboard active profile state
+- high-risk profiles must be previewed and explicitly confirmed before `Apply Mock Profile` is enabled
+- `Apply Mock Profile` updates mock runtime state and Dashboard active profile state
 - no real hardware write is performed yet
 
 ## Next Suggested Steps

@@ -4,9 +4,11 @@ namespace Semcosm.HardwareConsole.Abstractions;
 
 public sealed record ProfileApplyResult(
     bool Success,
-    ProfileDescriptor? ActiveProfile,
-    IReadOnlyList<ProfileControlActionDescriptor> WouldSetActions,
+    string ProfileId,
     ProfileApplyMode Mode,
-    bool HardwareWritePerformed,
-    bool RequiresConfirmation,
-    string Message);
+    string Message,
+    ProfileApplyFailureCode FailureCode,
+    IReadOnlyList<ProfileControlActionDescriptor> WouldSetActions,
+    IReadOnlyList<ProfileControlActionDescriptor> AppliedActions,
+    IReadOnlyList<ProfileControlActionDescriptor> BlockedActions,
+    IReadOnlyList<string> Diagnostics);

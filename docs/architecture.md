@@ -91,5 +91,7 @@ Current PR8 boundary:
 
 - `Dashboard` now reads active profile state from `IProfileRuntimeService`
 - `ProfilesPage` previews and applies profiles through the runtime service
-- `Apply` only updates mock runtime state today
+- `ProfilePresentationMapper` keeps profile/runtime-to-UI mapping out of `ProfilesViewModel`
+- high-risk profiles must be previewed and confirmed before mock apply is enabled
+- `Apply Mock Profile` only updates mock runtime state today
 - no real hardware write path is implemented yet

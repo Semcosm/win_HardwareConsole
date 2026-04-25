@@ -14,5 +14,6 @@ public sealed class ProfileCardModel
     public string PolicyCountText { get; set; } = string.Empty;
     public bool RequiresConfirmation { get; set; }
     public string ConfirmationText { get; set; } = string.Empty;
+    public bool IsApplyEnabled { get; set; }
     public bool IsActive { get; set; }
 }

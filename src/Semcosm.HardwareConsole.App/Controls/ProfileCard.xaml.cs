@@ -39,6 +39,9 @@ public sealed partial class ProfileCard : UserControl
     public static readonly DependencyProperty IsActiveProperty =
         DependencyProperty.Register(nameof(IsActive), typeof(bool), typeof(ProfileCard), new PropertyMetadata(false));
 
+    public static readonly DependencyProperty IsApplyEnabledProperty =
+        DependencyProperty.Register(nameof(IsApplyEnabled), typeof(bool), typeof(ProfileCard), new PropertyMetadata(true));
+
     public event RoutedEventHandler? PreviewRequested;
     public event RoutedEventHandler? ApplyRequested;
 
@@ -111,6 +114,12 @@ public sealed partial class ProfileCard : UserControl
     {
         get => (bool)GetValue(IsActiveProperty);
         set => SetValue(IsActiveProperty, value);
+    }
+
+    public bool IsApplyEnabled
+    {
+        get => (bool)GetValue(IsApplyEnabledProperty);
+        set => SetValue(IsApplyEnabledProperty, value);
     }
 
     private void PreviewButton_Click(object sender, RoutedEventArgs e)

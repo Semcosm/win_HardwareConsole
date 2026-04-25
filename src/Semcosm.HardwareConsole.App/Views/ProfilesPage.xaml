@@ -39,6 +39,7 @@
                                     PolicyCountText="{x:Bind PolicyCountText}"
                                     ShowConfirmation="{x:Bind RequiresConfirmation}"
                                     ConfirmationText="{x:Bind ConfirmationText}"
+                                    IsApplyEnabled="{x:Bind IsApplyEnabled}"
                                     IsActive="{x:Bind IsActive}"
                                     PreviewRequested="ProfileCard_PreviewRequested"
                                     ApplyRequested="ProfileCard_ApplyRequested" />
@@ -75,6 +76,7 @@
                                     PolicyCountText="{x:Bind PolicyCountText}"
                                     ShowConfirmation="{x:Bind RequiresConfirmation}"
                                     ConfirmationText="{x:Bind ConfirmationText}"
+                                    IsApplyEnabled="{x:Bind IsApplyEnabled}"
                                     IsActive="{x:Bind IsActive}"
                                     PreviewRequested="ProfileCard_PreviewRequested"
                                     ApplyRequested="ProfileCard_ApplyRequested" />
@@ -111,6 +113,7 @@
                                     PolicyCountText="{x:Bind PolicyCountText}"
                                     ShowConfirmation="{x:Bind RequiresConfirmation}"
                                     ConfirmationText="{x:Bind ConfirmationText}"
+                                    IsApplyEnabled="{x:Bind IsApplyEnabled}"
                                     IsActive="{x:Bind IsActive}"
                                     PreviewRequested="ProfileCard_PreviewRequested"
                                     ApplyRequested="ProfileCard_ApplyRequested" />
@@ -119,19 +122,49 @@
                     </ListView>
                 </StackPanel>
 
-                <controls:ProfilePreviewPanel
-                    Grid.Column="1"
-                    Title="{x:Bind ViewModel.Preview.Title, Mode=OneWay}"
-                    Description="{x:Bind ViewModel.Preview.Description, Mode=OneWay}"
-                    StatusText="{x:Bind ViewModel.Preview.StatusText, Mode=OneWay}"
-                    SourceText="{x:Bind ViewModel.Preview.SourceText, Mode=OneWay}"
-                    RiskLevel="{x:Bind ViewModel.Preview.RiskLevel, Mode=OneWay}"
-                    ShowConfirmation="{x:Bind ViewModel.Preview.RequiresConfirmation, Mode=OneWay}"
-                    ConfirmationText="{x:Bind ViewModel.Preview.ConfirmationText, Mode=OneWay}"
-                    ShowEmptyState="{x:Bind ViewModel.Preview.ShowEmptyState, Mode=OneWay}"
-                    EmptyTitle="{x:Bind ViewModel.Preview.EmptyTitle, Mode=OneWay}"
-                    EmptyDescription="{x:Bind ViewModel.Preview.EmptyDescription, Mode=OneWay}"
-                    Actions="{x:Bind ViewModel.PreviewActions, Mode=OneWay}" />
+                <StackPanel Grid.Column="1" Spacing="16">
+                    <controls:ProfilePreviewPanel
+                        Title="{x:Bind ViewModel.Preview.Title, Mode=OneWay}"
+                        Description="{x:Bind ViewModel.Preview.Description, Mode=OneWay}"
+                        StatusText="{x:Bind ViewModel.Preview.StatusText, Mode=OneWay}"
+                        SourceText="{x:Bind ViewModel.Preview.SourceText, Mode=OneWay}"
+                        RiskLevel="{x:Bind ViewModel.Preview.RiskLevel, Mode=OneWay}"
+                        ShowConfirmation="{x:Bind ViewModel.Preview.RequiresConfirmation, Mode=OneWay}"
+                        ConfirmationText="{x:Bind ViewModel.Preview.ConfirmationText, Mode=OneWay}"
+                        ShowEmptyState="{x:Bind ViewModel.Preview.ShowEmptyState, Mode=OneWay}"
+                        EmptyTitle="{x:Bind ViewModel.Preview.EmptyTitle, Mode=OneWay}"
+                        EmptyDescription="{x:Bind ViewModel.Preview.EmptyDescription, Mode=OneWay}"
+                        Actions="{x:Bind ViewModel.PreviewActions, Mode=OneWay}" />
+
+                    <Border
+                        x:Name="ConfirmationGatePanel"
+                        Padding="16"
+                        CornerRadius="16"
+                        Background="{ThemeResource LayerFillColorDefaultBrush}"
+                        x:Load="{x:Bind ViewModel.ShowConfirmationGate, Mode=OneWay}">
+                        <StackPanel Spacing="12">
+                            <TextBlock
+                                Text="Mock Apply Confirmation"
+                                FontSize="18"
+                                FontWeight="SemiBold" />
+
+                            <TextBlock
+                                Text="{x:Bind ViewModel.ConfirmationBannerText, Mode=OneWay}"
+                                TextWrapping="Wrap"
+                                Opacity="0.76" />
+
+                            <CheckBox
+                                x:Name="ConfirmationCheckBox"
+                                IsChecked="{x:Bind ViewModel.IsApplyConfirmed, Mode=OneWay}"
+                                Checked="ConfirmationCheckBox_Checked"
+                                Unchecked="ConfirmationCheckBox_Unchecked">
+                                <TextBlock
+                                    Text="{x:Bind ViewModel.ConfirmationCheckText, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </CheckBox>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
             </Grid>
         </StackPanel>
     </ScrollViewer>

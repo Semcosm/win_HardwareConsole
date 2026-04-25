@@ -31,4 +31,14 @@ public sealed partial class ProfilesPage : Page
             ViewModel.ApplyProfile(card.ProfileId);
         }
     }
+
+    private void ConfirmationCheckBox_Checked(object sender, RoutedEventArgs e)
+    {
+        ViewModel.IsApplyConfirmed = true;
+    }
+
+    private void ConfirmationCheckBox_Unchecked(object sender, RoutedEventArgs e)
+    {
+        ViewModel.IsApplyConfirmed = false;
+    }
 }
