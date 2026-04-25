@@ -13,7 +13,8 @@ public sealed class DashboardViewModel
 
     public DashboardViewModel(
         IHardwareInventoryService hardwareInventoryService,
-        ISensorSnapshotProvider sensorSnapshotProvider)
+        ISensorSnapshotProvider sensorSnapshotProvider,
+        IProfileRuntimeService profileRuntimeService)
     {
         var devices = hardwareInventoryService
             .GetDevices()
@@ -24,7 +25,10 @@ public sealed class DashboardViewModel
             .ToDictionary(sensor => sensor.SensorId);
 
         SummaryCards = new ObservableCollection<MetricCardModel>(
-            BuildSummaryCards(devices, sensorValues));
+            BuildSummaryCards(
+                devices,
+                sensorValues,
+                profileRuntimeService.GetActiveProfile()));
 
         DetailCards = new ObservableCollection<MetricCardModel>(
             BuildDetailCards(sensorValues));
@@ -32,7 +36,8 @@ public sealed class DashboardViewModel
 
     private static IReadOnlyList<MetricCardModel> BuildSummaryCards(
         IReadOnlyDictionary<string, DeviceDescriptor> devices,
-        IReadOnlyDictionary<string, SensorValue> sensorValues)
+        IReadOnlyDictionary<string, SensorValue> sensorValues,
+        ProfileDescriptor? activeProfile)
     {
         return new List<MetricCardModel>
         {
@@ -55,10 +60,10 @@ public sealed class DashboardViewModel
             new()
             {
                 Title = "Active Profile",
-                Subtitle = GetSensorValue(sensorValues, "sensor.profile.summary"),
-                PrimaryValue = GetSensorValue(sensorValues, "sensor.profile.active"),
-                SecondaryValue = GetSensorValue(sensorValues, "sensor.profile.details"),
-                Status = GetSensorValue(sensorValues, "sensor.profile.state")
+                Subtitle = activeProfile?.Description ?? "No profile is active in the current runtime.",
+                PrimaryValue = activeProfile?.DisplayName ?? "No Active Profile",
+                SecondaryValue = GetActiveProfileDetails(activeProfile),
+                Status = activeProfile is null ? "Inactive" : "Mock Runtime"
             }
         };
     }
@@ -113,5 +118,24 @@ public sealed class DashboardViewModel
         return sensorValues.TryGetValue(sensorId, out var value)
             ? value.FormattedValue
             : fallback;
+    }
+
+    private static string GetActiveProfileDetails(ProfileDescriptor? activeProfile)
+    {
+        if (activeProfile is null)
+        {
+            return "Profile runtime is available, but no active profile is currently selected.";
+        }
+
+        var sourceText = activeProfile.Kind switch
+        {
+            ProfileKind.BuiltIn => "Built-in",
+            ProfileKind.User => "User",
+            ProfileKind.DeviceProvided => "Device Provided",
+            ProfileKind.PluginProvided => "Plugin Provided",
+            _ => "Unknown"
+        };
+
+        return $"{sourceText} · {activeProfile.Actions.Count} control targets · {activeProfile.PolicyIds.Count} policies";
     }
 }

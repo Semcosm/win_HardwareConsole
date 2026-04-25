@@ -2,10 +2,137 @@
 <Page
     x:Class="Semcosm.HardwareConsole.App.Views.ProfilesPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Semcosm.HardwareConsole.App.Controls"
+    xmlns:models="using:Semcosm.HardwareConsole.App.Models">
 
-    <StackPanel Padding="32" Spacing="16">
-        <TextBlock Text="Profiles" FontSize="32" FontWeight="SemiBold" />
-        <TextBlock Text="Profile presets, switching rules and hardware policy bundles." Opacity="0.72" />
-    </StackPanel>
+    <ScrollViewer>
+        <StackPanel Padding="32" Spacing="24">
+            <controls:SectionHeader
+                Title="Profiles"
+                Description="Profile presets, switching rules and control bundles powered by the mock profile runtime."
+                TitleFontSize="32" />
+
+            <Grid ColumnSpacing="24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Spacing="24">
+                    <controls:SectionHeader
+                        Title="Current Active Profile"
+                        Description="The active profile now comes from the profile runtime, not mock profile sensor values."
+                        TitleFontSize="22" />
+
+                    <ContentControl Content="{x:Bind ViewModel.ActiveProfile, Mode=OneWay}">
+                        <ContentControl.ContentTemplate>
+                            <DataTemplate x:DataType="models:ProfileCardModel">
+                                <controls:ProfileCard
+                                    ProfileId="{x:Bind Id}"
+                                    DisplayName="{x:Bind DisplayName}"
+                                    Description="{x:Bind Description}"
+                                    RiskLevel="{x:Bind RiskLevel}"
+                                    SourceText="{x:Bind SourceText}"
+                                    CapabilityCountText="{x:Bind CapabilityCountText}"
+                                    ActionCountText="{x:Bind ActionCountText}"
+                                    PolicyCountText="{x:Bind PolicyCountText}"
+                                    ShowConfirmation="{x:Bind RequiresConfirmation}"
+                                    ConfirmationText="{x:Bind ConfirmationText}"
+                                    IsActive="{x:Bind IsActive}"
+                                    PreviewRequested="ProfileCard_PreviewRequested"
+                                    ApplyRequested="ProfileCard_ApplyRequested" />
+                            </DataTemplate>
+                        </ContentControl.ContentTemplate>
+                    </ContentControl>
+
+                    <controls:SectionHeader
+                        Title="Built-in Profiles"
+                        Description="Factory presets that bundle capabilities, control targets and policies."
+                        TitleFontSize="22" />
+
+                    <ListView
+                        ItemsSource="{x:Bind ViewModel.BuiltInProfiles, Mode=OneWay}"
+                        SelectionMode="None">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="Padding" Value="0" />
+                                <Setter Property="Margin" Value="0,0,0,16" />
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            </Style>
+                        </ListView.ItemContainerStyle>
+
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="models:ProfileCardModel">
+                                <controls:ProfileCard
+                                    ProfileId="{x:Bind Id}"
+                                    DisplayName="{x:Bind DisplayName}"
+                                    Description="{x:Bind Description}"
+                                    RiskLevel="{x:Bind RiskLevel}"
+                                    SourceText="{x:Bind SourceText}"
+                                    CapabilityCountText="{x:Bind CapabilityCountText}"
+                                    ActionCountText="{x:Bind ActionCountText}"
+                                    PolicyCountText="{x:Bind PolicyCountText}"
+                                    ShowConfirmation="{x:Bind RequiresConfirmation}"
+                                    ConfirmationText="{x:Bind ConfirmationText}"
+                                    IsActive="{x:Bind IsActive}"
+                                    PreviewRequested="ProfileCard_PreviewRequested"
+                                    ApplyRequested="ProfileCard_ApplyRequested" />
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <controls:SectionHeader
+                        Title="Custom Profiles"
+                        Description="User and vendor-provided presets live alongside the built-in library."
+                        TitleFontSize="22" />
+
+                    <ListView
+                        ItemsSource="{x:Bind ViewModel.CustomProfiles, Mode=OneWay}"
+                        SelectionMode="None">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="Padding" Value="0" />
+                                <Setter Property="Margin" Value="0,0,0,16" />
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            </Style>
+                        </ListView.ItemContainerStyle>
+
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="models:ProfileCardModel">
+                                <controls:ProfileCard
+                                    ProfileId="{x:Bind Id}"
+                                    DisplayName="{x:Bind DisplayName}"
+                                    Description="{x:Bind Description}"
+                                    RiskLevel="{x:Bind RiskLevel}"
+                                    SourceText="{x:Bind SourceText}"
+                                    CapabilityCountText="{x:Bind CapabilityCountText}"
+                                    ActionCountText="{x:Bind ActionCountText}"
+                                    PolicyCountText="{x:Bind PolicyCountText}"
+                                    ShowConfirmation="{x:Bind RequiresConfirmation}"
+                                    ConfirmationText="{x:Bind ConfirmationText}"
+                                    IsActive="{x:Bind IsActive}"
+                                    PreviewRequested="ProfileCard_PreviewRequested"
+                                    ApplyRequested="ProfileCard_ApplyRequested" />
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </StackPanel>
+
+                <controls:ProfilePreviewPanel
+                    Grid.Column="1"
+                    Title="{x:Bind ViewModel.Preview.Title, Mode=OneWay}"
+                    Description="{x:Bind ViewModel.Preview.Description, Mode=OneWay}"
+                    StatusText="{x:Bind ViewModel.Preview.StatusText, Mode=OneWay}"
+                    SourceText="{x:Bind ViewModel.Preview.SourceText, Mode=OneWay}"
+                    RiskLevel="{x:Bind ViewModel.Preview.RiskLevel, Mode=OneWay}"
+                    ShowConfirmation="{x:Bind ViewModel.Preview.RequiresConfirmation, Mode=OneWay}"
+                    ConfirmationText="{x:Bind ViewModel.Preview.ConfirmationText, Mode=OneWay}"
+                    ShowEmptyState="{x:Bind ViewModel.Preview.ShowEmptyState, Mode=OneWay}"
+                    EmptyTitle="{x:Bind ViewModel.Preview.EmptyTitle, Mode=OneWay}"
+                    EmptyDescription="{x:Bind ViewModel.Preview.EmptyDescription, Mode=OneWay}"
+                    Actions="{x:Bind ViewModel.PreviewActions, Mode=OneWay}" />
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
 </Page>

@@ -14,6 +14,21 @@ Responsibilities:
 - `Abstractions`: shared hardware contracts, descriptors, values, and provider interfaces
 - `Mock`: development-time implementations of inventory, plugin registry, and snapshot providers
 
+Current profile shape:
+
+```text
+inventory
+  -> ProfileDescriptor
+
+runtime
+  -> IProfileRuntimeService
+    -> active profile
+    -> profile preview
+    -> mock apply result
+```
+
+This intentionally separates "what profiles exist" from "which profile is active and what it would do".
+
 Current navigation shape:
 
 ```text
@@ -65,8 +80,16 @@ Target flow:
 ```text
 real hardware adapter or plugin host
   -> inventory / registry / snapshot provider
+    -> profile runtime
     -> view model
       -> WinUI page
 ```
 
 This keeps the UI stable when mock data is replaced with real hardware integration.
+
+Current PR8 boundary:
+
+- `Dashboard` now reads active profile state from `IProfileRuntimeService`
+- `ProfilesPage` previews and applies profiles through the runtime service
+- `Apply` only updates mock runtime state today
+- no real hardware write path is implemented yet

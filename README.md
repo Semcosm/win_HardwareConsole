@@ -17,7 +17,8 @@ Current app goals:
 
 - `Dashboard` shows unified hardware state through bound view models instead of hard-coded UI.
 - `Plugins` shows capability providers, risk level, matched devices, and extension metadata.
-- Other pages already exist as placeholders for the next phase: `Performance`, `Fans`, `Power`, `Thermal`, `Scheduler`, `Devices`, `Profiles`, `Diagnostics`, `Settings`.
+- `Profiles` now drives a mock profile runtime with preview/apply flows and updates Dashboard active profile state without writing real hardware.
+- Other pages already exist as placeholders for the next phase: `Performance`, `Fans`, `Power`, `Thermal`, `Scheduler`, `Devices`, `Diagnostics`, `Settings`.
 
 ## Current Stack
 
@@ -38,6 +39,7 @@ src/
   Semcosm.HardwareConsole.Abstractions/
     IHardwareInventoryService.cs
     IPluginRegistry.cs
+    IProfileRuntimeService.cs
     ISensorSnapshotProvider.cs
     PluginDescriptor.cs
     DeviceDescriptor.cs
@@ -54,6 +56,7 @@ Current UI flow:
 
 ```text
 Mock provider
+  -> profile runtime / sensor snapshot
   -> ViewModel
     -> WinUI page
 ```
@@ -92,8 +95,10 @@ Backed by:
 
 - `src/Semcosm.HardwareConsole.App/Models/MetricCardModel.cs`
 - `src/Semcosm.HardwareConsole.Abstractions/IHardwareInventoryService.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/IProfileRuntimeService.cs`
 - `src/Semcosm.HardwareConsole.Abstractions/ISensorSnapshotProvider.cs`
 - `src/Semcosm.HardwareConsole.Mock/Services/MockHardwareInventoryService.cs`
+- `src/Semcosm.HardwareConsole.Mock/Services/MockProfileRuntimeService.cs`
 - `src/Semcosm.HardwareConsole.Mock/Services/MockSensorSnapshotProvider.cs`
 - `src/Semcosm.HardwareConsole.App/ViewModels/DashboardViewModel.cs`
 - `src/Semcosm.HardwareConsole.App/Views/DashboardPage.xaml`
@@ -106,6 +111,8 @@ Shows mock summary and control-state cards for:
 - Fans
 - Power
 - Thermal
+
+The `Active Profile` card now comes from `IProfileRuntimeService`, not from mock `sensor.profile.*` values.
 
 ### Plugins
 
@@ -151,11 +158,50 @@ DeviceDescriptor + SensorValue
       -> DashboardPage
 ```
 
+Active profile state now follows:
+
+```text
+ProfileDescriptor
+  -> IProfileRuntimeService
+    -> DashboardViewModel
+      -> DashboardPage
+```
+
+### Profiles
+
+Backed by:
+
+- `src/Semcosm.HardwareConsole.Abstractions/ProfileDescriptor.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/ProfileControlActionDescriptor.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/IProfileRuntimeService.cs`
+- `src/Semcosm.HardwareConsole.Mock/Services/MockProfileRuntimeService.cs`
+- `src/Semcosm.HardwareConsole.App/ViewModels/ProfilesViewModel.cs`
+- `src/Semcosm.HardwareConsole.App/Views/ProfilesPage.xaml`
+
+Shows:
+
+- current active profile from runtime state
+- built-in and custom/mock provided profiles
+- preview of the controls a profile would target
+- mock apply behavior that updates runtime state without writing real hardware
+
+Current profile runtime shape:
+
+```text
+ProfileDescriptor
+  -> ProfileControlActionDescriptor
+    -> IProfileRuntimeService
+      -> ProfilesViewModel
+        -> ProfilesPage
+```
+
 ## Why This Shape
 
 The goal is to avoid tying the UI directly to a specific laptop brand, EC interface, or GPU vendor. Instead, device and control capabilities should come from plugins or adapters, while pages render from view models and capability metadata.
 
 That keeps the UI stable when the backend evolves from mock data to real hardware access. The same rule now applies to navigation: the shell reads built-in routes from a registry instead of hard-coding page switches in `MainWindow`.
+
+Profiles now follow the same separation: inventory still describes what profiles exist, while `IProfileRuntimeService` owns which profile is active, what a profile would do, and mock apply results.
 
 ## Run
 
@@ -201,9 +247,17 @@ The composite registry unsubscribes from provider events on disposal. That is su
 
 That is intentional while the project is still using WinUI, XAML, DI, and future plugin-loading paths that are sensitive to trimming. Release trimming should only come back after publish validation and plugin-loading tests exist.
 
+## Profile Runtime Notes
+
+`Profiles` currently uses a mock runtime only.
+
+- `Preview` shows which controls a profile intends to target
+- `Apply` updates mock runtime state and Dashboard active profile state
+- no real hardware write is performed yet
+
 ## Next Suggested Steps
 
-- Build the `Profiles` page with the same `Model + Service + ViewModel + Binding` pattern
 - Introduce real plugin manifest loading
 - Replace mock providers with real inventory, plugin registry and snapshot providers
+- Introduce a real profile runtime that writes validated control changes instead of mock state updates
 - Add a plugin route provider that can contribute pages to the navigation registry

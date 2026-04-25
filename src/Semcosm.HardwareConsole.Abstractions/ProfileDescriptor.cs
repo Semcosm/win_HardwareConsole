@@ -6,4 +6,8 @@ public sealed record ProfileDescriptor(
     string Id,
     string DisplayName,
     string Description,
-    IReadOnlyList<string> CapabilityIds);
+    ProfileKind Kind,
+    HardwareRiskLevel RiskLevel,
+    IReadOnlyList<string> CapabilityIds,
+    IReadOnlyList<ProfileControlActionDescriptor> Actions,
+    IReadOnlyList<string> PolicyIds);

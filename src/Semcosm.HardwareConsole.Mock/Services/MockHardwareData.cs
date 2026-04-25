@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Semcosm.HardwareConsole.Abstractions;
 
@@ -51,10 +52,6 @@ internal static class MockHardwareData
         new("sensor.gpu.clock", "GPU Clock", "device.gpu.rtx4060-laptop", SensorKind.Clock, "MHz"),
         new("sensor.gpu.power_limit", "GPU Power Limit", "device.gpu.rtx4060-laptop", SensorKind.Text, string.Empty),
         new("sensor.gpu.status", "GPU Status", "device.gpu.rtx4060-laptop", SensorKind.State, string.Empty),
-        new("sensor.profile.active", "Active Profile", "device.platform.mock-host", SensorKind.State, string.Empty),
-        new("sensor.profile.summary", "Profile Summary", "device.platform.mock-host", SensorKind.Text, string.Empty),
-        new("sensor.profile.details", "Profile Details", "device.platform.mock-host", SensorKind.Text, string.Empty),
-        new("sensor.profile.state", "Profile State", "device.platform.mock-host", SensorKind.State, string.Empty),
         new("sensor.fan.mode", "Fan Mode", "device.platform.mock-host", SensorKind.State, string.Empty),
         new("sensor.fan.state", "Fan State", "device.platform.mock-host", SensorKind.State, string.Empty),
         new("sensor.fan.cpu_rpm", "CPU Fan RPM", "device.platform.mock-host", SensorKind.FanSpeed, "RPM"),
@@ -78,15 +75,152 @@ internal static class MockHardwareData
 
     public static IReadOnlyList<ProfileDescriptor> Profiles { get; } = new List<ProfileDescriptor>
     {
-        new("profile.silent", "Silent", "Noise-first operation with reduced boost behavior.", new[] { "cap.fan.control", "cap.power.policy" }),
-        new("profile.balanced", "Balanced", "Balanced thermal and performance behavior for daily workloads.", new[] { "cap.power.policy", "cap.scheduler.policy" }),
-        new("profile.performance", "Performance", "Maximum sustained performance with aggressive cooling.", new[] { "cap.cpu.telemetry", "cap.gpu.telemetry", "cap.fan.control", "cap.thermal.policy" })
+        new(
+            "profile.silent",
+            "Silent",
+            "Noise-first operation with reduced boost behavior and a quiet fan curve.",
+            ProfileKind.BuiltIn,
+            HardwareRiskLevel.SafeControl,
+            new[] { "cap.fan.control", "cap.power.policy" },
+            new[]
+            {
+                TextAction("control.platform.profile", "Silent", ControlRiskLevel.SafeControl),
+                TextAction("control.fan.curve", "Quiet Curve", ControlRiskLevel.HardwareWrite),
+                TextAction("control.cpu.power_limits", "PL1 45W / PL2 70W", ControlRiskLevel.SafeControl),
+                NumericAction("control.gpu.power_limit", 60, "W", "60W", ControlRiskLevel.SafeControl)
+            },
+            new[] { "policy.power.battery", "policy.thermal.quiet" }),
+        new(
+            "profile.balanced",
+            "Balanced",
+            "Balanced thermal and performance behavior for daily workloads.",
+            ProfileKind.BuiltIn,
+            HardwareRiskLevel.SafeControl,
+            new[] { "cap.power.policy", "cap.scheduler.policy" },
+            new[]
+            {
+                TextAction("control.platform.profile", "Balanced", ControlRiskLevel.SafeControl),
+                TextAction("control.fan.curve", "Balanced Curve", ControlRiskLevel.HardwareWrite),
+                TextAction("control.cpu.power_limits", "PL1 70W / PL2 110W", ControlRiskLevel.SafeControl),
+                NumericAction("control.gpu.power_limit", 90, "W", "90W", ControlRiskLevel.SafeControl)
+            },
+            new[] { "policy.thermal.default" }),
+        new(
+            "profile.performance",
+            "Performance",
+            "Maximum sustained performance with aggressive cooling and foreground bias.",
+            ProfileKind.BuiltIn,
+            HardwareRiskLevel.SafeControl,
+            new[] { "cap.cpu.telemetry", "cap.gpu.telemetry", "cap.fan.control", "cap.thermal.policy" },
+            new[]
+            {
+                TextAction("control.platform.profile", "Performance", ControlRiskLevel.SafeControl),
+                TextAction("control.fan.curve", "Performance Curve", ControlRiskLevel.HardwareWrite),
+                TextAction("control.cpu.power_limits", "PL1 90W / PL2 140W", ControlRiskLevel.SafeControl),
+                NumericAction("control.gpu.power_limit", 115, "W", "115W", ControlRiskLevel.SafeControl)
+            },
+            new[] { "policy.thermal.default", "policy.scheduler.performance" }),
+        new(
+            "profile.turbo",
+            "Turbo",
+            "Short-burst maximum performance with elevated fan noise and hardware-write controls.",
+            ProfileKind.BuiltIn,
+            HardwareRiskLevel.HardwareWrite,
+            new[] { "cap.cpu.telemetry", "cap.gpu.telemetry", "cap.fan.control", "cap.thermal.policy" },
+            new[]
+            {
+                TextAction("control.platform.profile", "Turbo", ControlRiskLevel.SafeControl),
+                TextAction("control.fan.curve", "Turbo Curve", ControlRiskLevel.HardwareWrite, requiresConfirmation: true),
+                TextAction("control.cpu.power_limits", "PL1 110W / PL2 157W", ControlRiskLevel.HardwareWrite, requiresConfirmation: true),
+                NumericAction("control.gpu.power_limit", 140, "W", "140W", ControlRiskLevel.HardwareWrite, requiresConfirmation: true)
+            },
+            new[] { "policy.thermal.turbo", "policy.scheduler.performance" }),
+        new(
+            "profile.compile",
+            "Compile",
+            "CPU-prioritized compile preset with stable GPU limits and scheduler tuning.",
+            ProfileKind.BuiltIn,
+            HardwareRiskLevel.SafeControl,
+            new[] { "cap.cpu.telemetry", "cap.power.policy", "cap.scheduler.policy" },
+            new[]
+            {
+                TextAction("control.platform.profile", "Compile", ControlRiskLevel.SafeControl),
+                TextAction("control.fan.curve", "Build Curve", ControlRiskLevel.HardwareWrite),
+                TextAction("control.cpu.power_limits", "PL1 100W / PL2 145W", ControlRiskLevel.SafeControl),
+                NumericAction("control.gpu.power_limit", 80, "W", "80W", ControlRiskLevel.SafeControl)
+            },
+            new[] { "policy.scheduler.compile", "policy.thermal.default" }),
+        new(
+            "profile.streaming",
+            "Streaming",
+            "Balanced foreground performance with quieter acoustics for capture and streaming.",
+            ProfileKind.BuiltIn,
+            HardwareRiskLevel.SafeControl,
+            new[] { "cap.gpu.telemetry", "cap.scheduler.policy", "cap.power.policy" },
+            new[]
+            {
+                TextAction("control.platform.profile", "Streaming", ControlRiskLevel.SafeControl),
+                TextAction("control.fan.curve", "Streaming Curve", ControlRiskLevel.HardwareWrite),
+                TextAction("control.cpu.power_limits", "PL1 75W / PL2 105W", ControlRiskLevel.SafeControl),
+                NumericAction("control.gpu.power_limit", 95, "W", "95W", ControlRiskLevel.SafeControl)
+            },
+            new[] { "policy.scheduler.streaming", "policy.thermal.default" }),
+        new(
+            "profile.battery",
+            "Battery",
+            "Low-power battery mode with conservative CPU, GPU and fan targets.",
+            ProfileKind.BuiltIn,
+            HardwareRiskLevel.SafeControl,
+            new[] { "cap.power.policy", "cap.scheduler.policy" },
+            new[]
+            {
+                TextAction("control.platform.profile", "Battery", ControlRiskLevel.SafeControl),
+                TextAction("control.fan.curve", "Battery Saver Curve", ControlRiskLevel.HardwareWrite),
+                TextAction("control.cpu.power_limits", "PL1 28W / PL2 45W", ControlRiskLevel.SafeControl),
+                NumericAction("control.gpu.power_limit", 45, "W", "45W", ControlRiskLevel.SafeControl)
+            },
+            new[] { "policy.power.battery" }),
+        new(
+            "profile.creator-custom",
+            "Creator Custom",
+            "User-defined mixed workload preset with quieter fans and sustained compile headroom.",
+            ProfileKind.User,
+            HardwareRiskLevel.HardwareWrite,
+            new[] { "cap.fan.control", "cap.power.policy", "cap.scheduler.policy" },
+            new[]
+            {
+                TextAction("control.platform.profile", "Creator Custom", ControlRiskLevel.SafeControl),
+                TextAction("control.fan.curve", "Creator Curve", ControlRiskLevel.HardwareWrite, requiresConfirmation: true),
+                TextAction("control.cpu.power_limits", "PL1 85W / PL2 125W", ControlRiskLevel.SafeControl),
+                NumericAction("control.gpu.power_limit", 105, "W", "105W", ControlRiskLevel.SafeControl)
+            },
+            new[] { "policy.scheduler.compile" }),
+        new(
+            "profile.oem-gaming-plus",
+            "OEM Gaming+",
+            "Device-provided vendor preset with elevated thermal targets and confirmation-gated writes.",
+            ProfileKind.DeviceProvided,
+            HardwareRiskLevel.HardwareWrite,
+            new[] { "cap.cpu.telemetry", "cap.gpu.telemetry", "cap.fan.control", "cap.thermal.policy" },
+            new[]
+            {
+                TextAction("control.platform.profile", "OEM Gaming+", ControlRiskLevel.SafeControl),
+                TextAction("control.fan.curve", "OEM Gaming Curve", ControlRiskLevel.HardwareWrite, requiresConfirmation: true),
+                TextAction("control.cpu.power_limits", "PL1 105W / PL2 150W", ControlRiskLevel.HardwareWrite, requiresConfirmation: true),
+                NumericAction("control.gpu.power_limit", 130, "W", "130W", ControlRiskLevel.HardwareWrite, requiresConfirmation: true)
+            },
+            new[] { "policy.thermal.turbo", "policy.scheduler.performance" })
     };
 
     public static IReadOnlyList<PolicyDescriptor> Policies { get; } = new List<PolicyDescriptor>
     {
         new("policy.thermal.default", "Default Thermal Chain", "Thermal limits and emergency handling chain.", new[] { "sensor.cpu.temperature", "sensor.gpu.temperature" }, new[] { "cap.thermal.policy" }),
-        new("policy.scheduler.performance", "Performance Scheduler Policy", "Scheduler hints for high-performance foreground tasks.", new[] { "sensor.profile.active" }, new[] { "cap.scheduler.policy" })
+        new("policy.thermal.quiet", "Quiet Thermal Chain", "Lower fan ramp strategy and conservative thermal targets.", new[] { "sensor.cpu.temperature", "sensor.gpu.temperature" }, new[] { "cap.thermal.policy", "cap.fan.control" }),
+        new("policy.thermal.turbo", "Turbo Thermal Chain", "Elevated fan response and higher thermal limits for burst performance.", new[] { "sensor.cpu.temperature", "sensor.gpu.temperature" }, new[] { "cap.thermal.policy", "cap.fan.control" }),
+        new("policy.scheduler.performance", "Performance Scheduler Policy", "Scheduler hints for high-performance foreground tasks.", new[] { "sensor.cpu.clock" }, new[] { "cap.scheduler.policy" }),
+        new("policy.scheduler.compile", "Compile Scheduler Policy", "Favors sustained CPU throughput and stable background scheduling.", new[] { "sensor.cpu.package_power" }, new[] { "cap.scheduler.policy" }),
+        new("policy.scheduler.streaming", "Streaming Scheduler Policy", "Reserves foreground responsiveness for capture and broadcast tasks.", new[] { "sensor.gpu.clock" }, new[] { "cap.scheduler.policy" }),
+        new("policy.power.battery", "Battery Saver Policy", "Reduces power targets and discourages boost while on battery.", new[] { "sensor.power.state" }, new[] { "cap.power.policy" })
     };
 
     public static IReadOnlyList<SensorValue> CurrentSensorValues { get; } = new List<SensorValue>
@@ -101,10 +235,6 @@ internal static class MockHardwareData
         NumericSensor("sensor.gpu.clock", 2370, "MHz", "2370 MHz"),
         TextSensor("sensor.gpu.power_limit", "Power Limit 115W"),
         TextSensor("sensor.gpu.status", "Boost"),
-        TextSensor("sensor.profile.active", "Performance"),
-        TextSensor("sensor.profile.summary", "AC power · fan curve · scheduler boost"),
-        TextSensor("sensor.profile.details", "Hardware write disabled in mock mode"),
-        TextSensor("sensor.profile.state", "Mock"),
         TextSensor("sensor.fan.mode", "Curve controlled by Max(CPU, GPU)"),
         TextSensor("sensor.fan.state", "Auto"),
         NumericSensor("sensor.fan.cpu_rpm", 4200, "RPM", "CPU 4200 RPM"),
@@ -185,6 +315,19 @@ internal static class MockHardwareData
         };
     }
 
+    public static ProfileDescriptor? GetProfile(string profileId)
+    {
+        foreach (var profile in Profiles)
+        {
+            if (string.Equals(profile.Id, profileId, StringComparison.OrdinalIgnoreCase))
+            {
+                return profile;
+            }
+        }
+
+        return null;
+    }
+
     private static SensorValue NumericSensor(
         string sensorId,
         double numericValue,
@@ -215,5 +358,47 @@ internal static class MockHardwareData
             textValue,
             SnapshotTimestamp,
             quality);
+    }
+
+    private static ProfileControlActionDescriptor NumericAction(
+        string controlId,
+        double numericValue,
+        string unit,
+        string formattedValue,
+        ControlRiskLevel riskLevel,
+        bool requiresConfirmation = false)
+    {
+        return new ProfileControlActionDescriptor(
+            controlId,
+            new ControlValue(
+                controlId,
+                numericValue,
+                null,
+                unit,
+                formattedValue,
+                SnapshotTimestamp,
+                ValueQuality.Good),
+            riskLevel,
+            requiresConfirmation);
+    }
+
+    private static ProfileControlActionDescriptor TextAction(
+        string controlId,
+        string formattedValue,
+        ControlRiskLevel riskLevel,
+        bool requiresConfirmation = false)
+    {
+        return new ProfileControlActionDescriptor(
+            controlId,
+            new ControlValue(
+                controlId,
+                null,
+                formattedValue,
+                string.Empty,
+                formattedValue,
+                SnapshotTimestamp,
+                ValueQuality.Good),
+            riskLevel,
+            requiresConfirmation);
     }
 }

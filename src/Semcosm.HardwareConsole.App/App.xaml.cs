@@ -31,6 +31,7 @@ namespace Semcosm.HardwareConsole.App
         {
             services.AddSingleton<IHardwareInventoryService, MockHardwareInventoryService>();
             services.AddSingleton<IPluginRegistry, MockPluginRegistry>();
+            services.AddSingleton<IProfileRuntimeService, MockProfileRuntimeService>();
             services.AddSingleton<ISensorSnapshotProvider, MockSensorSnapshotProvider>();
             services.AddSingleton<INavigationRouteProvider, BuiltInNavigationRouteProvider>();
             services.AddSingleton<INavigationRouteRegistry, CompositeNavigationRouteRegistry>();
@@ -38,6 +39,7 @@ namespace Semcosm.HardwareConsole.App
             services.AddSingleton<IPageFactory, PageFactory>();
             services.AddSingleton<INavigationService, NavigationService>();
             services.AddTransient<DashboardViewModel>();
+            services.AddTransient<ProfilesViewModel>();
             services.AddTransient<PluginsViewModel>();
             services.AddTransient<MainWindow>();
         }

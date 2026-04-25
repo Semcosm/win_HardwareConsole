@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="Semcosm.HardwareConsole.App.Controls.ProfileActionRow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Semcosm.HardwareConsole.App.Controls"
+    xmlns:local="using:Semcosm.HardwareConsole.App.Controls"
+    x:DataType="local:ProfileActionRow"
+    x:Name="Root">
+
+    <Border
+        Padding="16"
+        CornerRadius="14"
+        Background="{ThemeResource LayerFillColorDefaultBrush}">
+
+        <Grid ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Spacing="6">
+                <TextBlock
+                    Text="{x:Bind DisplayName, Mode=OneWay}"
+                    FontWeight="SemiBold" />
+
+                <TextBlock
+                    Text="{x:Bind Subtitle, Mode=OneWay}"
+                    Opacity="0.68"
+                    TextWrapping="Wrap" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Spacing="8">
+                <TextBlock
+                    Text="{x:Bind TargetValue, Mode=OneWay}"
+                    FontWeight="SemiBold"
+                    HorizontalAlignment="Right" />
+
+                <controls:RiskBadge
+                    HorizontalAlignment="Right"
+                    RiskLevel="{x:Bind RiskLevel, Mode=OneWay}" />
+
+                <controls:CapabilityChip
+                    x:Name="ConfirmationChip"
+                    HorizontalAlignment="Right"
+                    Text="{x:Bind ConfirmationText, Mode=OneWay}"
+                    x:Load="{x:Bind ShowConfirmation, Mode=OneWay}" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>
