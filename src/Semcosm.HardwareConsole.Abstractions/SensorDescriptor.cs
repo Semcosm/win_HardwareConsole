@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Semcosm.HardwareConsole.Abstractions;
 
 public sealed record SensorDescriptor(
@@ -5,4 +7,7 @@ public sealed record SensorDescriptor(
     string DisplayName,
     string DeviceId,
     SensorKind Kind,
-    string Unit);
+    string Unit)
+{
+    public IReadOnlyList<string> CapabilityTags { get; init; } = [];
+}

@@ -26,4 +26,31 @@ public sealed partial class FansPage : Page
                 editor.SelectedOutputControlId);
         }
     }
+
+    private void FanCurveEditor_DraftChanged(object sender, RoutedEventArgs e)
+    {
+        if (sender is FanCurveEditor editor && !string.IsNullOrWhiteSpace(editor.PolicyId))
+        {
+            ViewModel.UpdateDraft(
+                editor.PolicyId,
+                editor.SelectedInputSensorId,
+                editor.SelectedOutputControlId);
+        }
+    }
+
+    private void FanCurveEditor_ResetRequested(object sender, RoutedEventArgs e)
+    {
+        if (sender is FanCurveEditor editor && !string.IsNullOrWhiteSpace(editor.PolicyId))
+        {
+            ViewModel.ResetPolicy(editor.PolicyId);
+        }
+    }
+
+    private void FanCurveEditor_ApplyRequested(object sender, RoutedEventArgs e)
+    {
+        if (sender is FanCurveEditor editor && !string.IsNullOrWhiteSpace(editor.PolicyId))
+        {
+            ViewModel.ApplyMockPolicy(editor.PolicyId);
+        }
+    }
 }

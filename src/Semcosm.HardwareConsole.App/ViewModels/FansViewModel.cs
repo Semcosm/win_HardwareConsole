@@ -13,8 +13,10 @@ public sealed class FansViewModel : INotifyPropertyChanged
     private readonly IReadOnlyList<SelectionOptionModel> _inputSensorOptions;
     private readonly IReadOnlyList<SelectionOptionModel> _outputControlOptions;
     private readonly FanPolicyPresentationMapper _presentationMapper;
-    private readonly Dictionary<string, FanCurvePolicyDescriptor> _policiesById;
+    private readonly Dictionary<string, FanPolicyDraftModel> _draftsById;
+    private readonly Dictionary<string, FanCurvePolicyDescriptor> _savedPoliciesById;
     private PolicyRuntimePreviewModel _preview = PolicyRuntimePreviewModel.CreateEmpty();
+    private string? _previewedPolicyId;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -26,7 +28,8 @@ public sealed class FansViewModel : INotifyPropertyChanged
         _inputSensorOptions = _presentationMapper.BuildInputSensorOptions();
         _outputControlOptions = _presentationMapper.BuildOutputControlOptions();
         var availablePolicies = policyRuntimeService.GetAvailableFanPolicies();
-        _policiesById = BuildPolicyMap(availablePolicies);
+        _savedPoliciesById = BuildPolicyMap(availablePolicies);
+        _draftsById = BuildDraftMap(availablePolicies);
 
         Policies = new ObservableCollection<FanPolicyEditorModel>();
         PreviewCurvePoints = new ObservableCollection<FanCurvePointRowModel>();
@@ -57,43 +60,97 @@ public sealed class FansViewModel : INotifyPropertyChanged
         private set => SetProperty(ref _preview, value);
     }
 
+    public void UpdateDraft(string policyId, string inputSensorId, string outputControlId)
+    {
+        if (!TryUpdateDraft(policyId, inputSensorId, outputControlId, out var changed) || !changed)
+        {
+            return;
+        }
+
+        RefreshPolicyModel(policyId);
+    }
+
     public void PreviewPolicy(string policyId, string inputSensorId, string outputControlId)
     {
-        if (!_policiesById.TryGetValue(policyId, out var basePolicy))
+        if (!TryUpdateDraft(policyId, inputSensorId, outputControlId, out var changed))
         {
             Preview = PolicyRuntimePreviewModel.CreateEmpty();
             PreviewCurvePoints.Clear();
             return;
         }
 
-        var previewPolicy = basePolicy with
+        if (changed)
         {
-            InputSensorId = string.IsNullOrWhiteSpace(inputSensorId) ? basePolicy.InputSensorId : inputSensorId,
-            OutputControlId = string.IsNullOrWhiteSpace(outputControlId) ? basePolicy.OutputControlId : outputControlId
-        };
+            RefreshPolicyModel(policyId);
+        }
 
+        var previewPolicy = BuildPolicyFromDraft(policyId);
         var preview = _policyRuntimeService.PreviewFanPolicy(previewPolicy);
 
-        ReplacePolicyModel(previewPolicy);
+        _previewedPolicyId = policyId;
         RebuildPreviewCurvePoints(previewPolicy.Points);
         Preview = _presentationMapper.MapPreview(preview);
+    }
+
+    public void ResetPolicy(string policyId)
+    {
+        if (!_savedPoliciesById.TryGetValue(policyId, out var savedPolicy)
+            || !_draftsById.TryGetValue(policyId, out var draft))
+        {
+            return;
+        }
+
+        draft.SelectedInputSensorId = savedPolicy.InputSensorId;
+        draft.SelectedOutputControlId = savedPolicy.OutputControlId;
+        draft.IsDirty = false;
+
+        RefreshPolicyModel(policyId);
+
+        if (string.Equals(_previewedPolicyId, policyId))
+        {
+            PreviewPolicy(policyId, draft.SelectedInputSensorId, draft.SelectedOutputControlId);
+        }
+    }
+
+    public void ApplyMockPolicy(string policyId)
+    {
+        if (!_draftsById.TryGetValue(policyId, out var draft)
+            || !_savedPoliciesById.ContainsKey(policyId))
+        {
+            return;
+        }
+
+        var appliedPolicy = BuildPolicyFromDraft(policyId);
+        _savedPoliciesById[policyId] = appliedPolicy;
+        draft.SelectedInputSensorId = appliedPolicy.InputSensorId;
+        draft.SelectedOutputControlId = appliedPolicy.OutputControlId;
+        draft.IsDirty = false;
+
+        RefreshPolicyModel(policyId);
+        _previewedPolicyId = policyId;
+        RebuildPreviewCurvePoints(appliedPolicy.Points);
+        Preview = _presentationMapper.MapPreview(_policyRuntimeService.PreviewFanPolicy(appliedPolicy));
     }
 
     private FanPolicyEditorModel CreateEditorModel(FanCurvePolicyDescriptor policy)
     {
         return _presentationMapper.MapPolicyEditor(
             policy,
+            _draftsById[policy.Id],
             _inputSensorOptions,
             _outputControlOptions);
     }
 
-    private void ReplacePolicyModel(FanCurvePolicyDescriptor policy)
+    private void RefreshPolicyModel(string policyId)
     {
-        _policiesById[policy.Id] = policy;
+        if (!_savedPoliciesById.TryGetValue(policyId, out var policy))
+        {
+            return;
+        }
 
         for (var index = 0; index < Policies.Count; index++)
         {
-            if (string.Equals(Policies[index].PolicyId, policy.Id))
+            if (string.Equals(Policies[index].PolicyId, policyId))
             {
                 Policies[index] = CreateEditorModel(policy);
                 return;
@@ -122,6 +179,83 @@ public sealed class FansViewModel : INotifyPropertyChanged
         }
 
         return map;
+    }
+
+    private static Dictionary<string, FanPolicyDraftModel> BuildDraftMap(
+        IReadOnlyList<FanCurvePolicyDescriptor> policies)
+    {
+        var map = new Dictionary<string, FanPolicyDraftModel>();
+
+        foreach (var policy in policies)
+        {
+            map[policy.Id] = new FanPolicyDraftModel
+            {
+                PolicyId = policy.Id,
+                SelectedInputSensorId = policy.InputSensorId,
+                SelectedOutputControlId = policy.OutputControlId,
+                IsDirty = false
+            };
+        }
+
+        return map;
+    }
+
+    private FanCurvePolicyDescriptor BuildPolicyFromDraft(string policyId)
+    {
+        var savedPolicy = _savedPoliciesById[policyId];
+        var draft = _draftsById[policyId];
+
+        return savedPolicy with
+        {
+            InputSensorId = string.IsNullOrWhiteSpace(draft.SelectedInputSensorId)
+                ? savedPolicy.InputSensorId
+                : draft.SelectedInputSensorId,
+            OutputControlId = string.IsNullOrWhiteSpace(draft.SelectedOutputControlId)
+                ? savedPolicy.OutputControlId
+                : draft.SelectedOutputControlId
+        };
+    }
+
+    private bool TryUpdateDraft(
+        string policyId,
+        string inputSensorId,
+        string outputControlId,
+        out bool changed)
+    {
+        if (!_savedPoliciesById.TryGetValue(policyId, out var savedPolicy)
+            || !_draftsById.TryGetValue(policyId, out var draft))
+        {
+            changed = false;
+            return false;
+        }
+
+        var nextInputSensorId = string.IsNullOrWhiteSpace(inputSensorId)
+            ? savedPolicy.InputSensorId
+            : inputSensorId;
+
+        var nextOutputControlId = string.IsNullOrWhiteSpace(outputControlId)
+            ? savedPolicy.OutputControlId
+            : outputControlId;
+
+        var nextIsDirty =
+            !string.Equals(nextInputSensorId, savedPolicy.InputSensorId)
+            || !string.Equals(nextOutputControlId, savedPolicy.OutputControlId);
+
+        changed =
+            !string.Equals(draft.SelectedInputSensorId, nextInputSensorId)
+            || !string.Equals(draft.SelectedOutputControlId, nextOutputControlId)
+            || draft.IsDirty != nextIsDirty;
+
+        if (!changed)
+        {
+            return true;
+        }
+
+        draft.SelectedInputSensorId = nextInputSensorId;
+        draft.SelectedOutputControlId = nextOutputControlId;
+        draft.IsDirty = nextIsDirty;
+
+        return true;
     }
 
     private bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)

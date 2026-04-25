@@ -50,7 +50,19 @@ public sealed partial class FanCurveEditor : UserControl
     public static readonly DependencyProperty RampDownTextProperty =
         DependencyProperty.Register(nameof(RampDownText), typeof(string), typeof(FanCurveEditor), new PropertyMetadata(string.Empty));
 
+    public static readonly DependencyProperty DraftStateTextProperty =
+        DependencyProperty.Register(nameof(DraftStateText), typeof(string), typeof(FanCurveEditor), new PropertyMetadata(string.Empty));
+
+    public static readonly DependencyProperty CanResetProperty =
+        DependencyProperty.Register(nameof(CanReset), typeof(bool), typeof(FanCurveEditor), new PropertyMetadata(false));
+
+    public static readonly DependencyProperty CanApplyMockPolicyProperty =
+        DependencyProperty.Register(nameof(CanApplyMockPolicy), typeof(bool), typeof(FanCurveEditor), new PropertyMetadata(false));
+
+    public event RoutedEventHandler? DraftChanged;
     public event RoutedEventHandler? PreviewRequested;
+    public event RoutedEventHandler? ResetRequested;
+    public event RoutedEventHandler? ApplyRequested;
 
     public FanCurveEditor()
     {
@@ -141,8 +153,46 @@ public sealed partial class FanCurveEditor : UserControl
         set => SetValue(RampDownTextProperty, value);
     }
 
+    public string DraftStateText
+    {
+        get => (string)GetValue(DraftStateTextProperty);
+        set => SetValue(DraftStateTextProperty, value);
+    }
+
+    public bool CanReset
+    {
+        get => (bool)GetValue(CanResetProperty);
+        set => SetValue(CanResetProperty, value);
+    }
+
+    public bool CanApplyMockPolicy
+    {
+        get => (bool)GetValue(CanApplyMockPolicyProperty);
+        set => SetValue(CanApplyMockPolicyProperty, value);
+    }
+
+    private void InputSensorComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        DraftChanged?.Invoke(this, new RoutedEventArgs());
+    }
+
+    private void OutputControlComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        DraftChanged?.Invoke(this, new RoutedEventArgs());
+    }
+
     private void PreviewButton_Click(object sender, RoutedEventArgs e)
     {
         PreviewRequested?.Invoke(this, e);
+    }
+
+    private void ResetButton_Click(object sender, RoutedEventArgs e)
+    {
+        ResetRequested?.Invoke(this, e);
+    }
+
+    private void ApplyButton_Click(object sender, RoutedEventArgs e)
+    {
+        ApplyRequested?.Invoke(this, e);
     }
 }

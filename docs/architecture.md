@@ -108,6 +108,6 @@ Current PR10 boundary:
 
 - `FansPage` renders mock fan policies from `IPolicyRuntimeService`
 - `FanCurvePolicyDescriptor` binds sensors to controls through curve points and timing fields
-- preview only shows would-set policy behavior
+- preview now returns structured policy-preview data including required sensors, would-set controls, blocked reasons and diagnostics
 - fan policies reference the same sensor/control ids already exposed on `DevicesPage`
 - no real hardware write path is implemented yet

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Semcosm.HardwareConsole.Abstractions;
 
 public sealed record ControlDescriptor(
@@ -5,4 +7,7 @@ public sealed record ControlDescriptor(
     string DisplayName,
     string DeviceId,
     ControlKind Kind,
-    ControlRiskLevel RiskLevel);
+    ControlRiskLevel RiskLevel)
+{
+    public IReadOnlyList<string> CapabilityTags { get; init; } = [];
+}

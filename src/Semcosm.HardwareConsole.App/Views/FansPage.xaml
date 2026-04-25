@@ -53,7 +53,13 @@
                                     HysteresisText="{x:Bind HysteresisText}"
                                     RampUpText="{x:Bind RampUpText}"
                                     RampDownText="{x:Bind RampDownText}"
-                                    PreviewRequested="FanCurveEditor_PreviewRequested" />
+                                    DraftStateText="{x:Bind DraftStateText}"
+                                    CanReset="{x:Bind CanReset}"
+                                    CanApplyMockPolicy="{x:Bind CanApplyMockPolicy}"
+                                    DraftChanged="FanCurveEditor_DraftChanged"
+                                    PreviewRequested="FanCurveEditor_PreviewRequested"
+                                    ResetRequested="FanCurveEditor_ResetRequested"
+                                    ApplyRequested="FanCurveEditor_ApplyRequested" />
                             </DataTemplate>
                         </ListView.ItemTemplate>
                     </ListView>
@@ -99,7 +105,32 @@
                             Opacity="0.76" />
 
                         <TextBlock
+                            Text="{x:Bind ViewModel.Preview.RequiredSensorsSummary, Mode=OneWay}"
+                            TextWrapping="Wrap"
+                            Opacity="0.76" />
+
+                        <TextBlock
+                            Text="{x:Bind ViewModel.Preview.StatusText, Mode=OneWay}"
+                            TextWrapping="Wrap"
+                            Opacity="0.76" />
+
+                        <TextBlock
+                            Text="{x:Bind ViewModel.Preview.FailureCodeText, Mode=OneWay}"
+                            TextWrapping="Wrap"
+                            Opacity="0.76" />
+
+                        <TextBlock
                             Text="{x:Bind ViewModel.Preview.TimingSummary, Mode=OneWay}"
+                            TextWrapping="Wrap"
+                            Opacity="0.76" />
+
+                        <TextBlock
+                            Text="{x:Bind ViewModel.Preview.BlockedReasonsSummary, Mode=OneWay}"
+                            TextWrapping="Wrap"
+                            Opacity="0.76" />
+
+                        <TextBlock
+                            Text="{x:Bind ViewModel.Preview.DiagnosticsSummary, Mode=OneWay}"
                             TextWrapping="Wrap"
                             Opacity="0.76" />
 

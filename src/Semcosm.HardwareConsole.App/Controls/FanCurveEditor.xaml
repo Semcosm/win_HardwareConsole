@@ -39,6 +39,7 @@
             </Grid>
 
             <controls:CapabilityChip Text="{x:Bind PolicyText, Mode=OneWay}" />
+            <controls:CapabilityChip Text="{x:Bind DraftStateText, Mode=OneWay}" />
 
             <Grid ColumnSpacing="12">
                 <Grid.ColumnDefinitions>
@@ -52,7 +53,8 @@
                         ItemsSource="{x:Bind InputSensorOptions, Mode=OneWay}"
                         DisplayMemberPath="DisplayName"
                         SelectedValuePath="Id"
-                        SelectedValue="{x:Bind SelectedInputSensorId, Mode=TwoWay}" />
+                        SelectedValue="{x:Bind SelectedInputSensorId, Mode=TwoWay}"
+                        SelectionChanged="InputSensorComboBox_SelectionChanged" />
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Spacing="6">
@@ -61,7 +63,8 @@
                         ItemsSource="{x:Bind OutputControlOptions, Mode=OneWay}"
                         DisplayMemberPath="DisplayName"
                         SelectedValuePath="Id"
-                        SelectedValue="{x:Bind SelectedOutputControlId, Mode=TwoWay}" />
+                        SelectedValue="{x:Bind SelectedOutputControlId, Mode=TwoWay}"
+                        SelectionChanged="OutputControlComboBox_SelectionChanged" />
                 </StackPanel>
             </Grid>
 
@@ -120,9 +123,21 @@
                 </ItemsControl>
             </StackPanel>
 
-            <Button
-                Content="Preview Mock Policy"
-                Click="PreviewButton_Click" />
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <Button
+                    Content="Preview Mock Policy"
+                    Click="PreviewButton_Click" />
+
+                <Button
+                    Content="Reset Draft"
+                    IsEnabled="{x:Bind CanReset, Mode=OneWay}"
+                    Click="ResetButton_Click" />
+
+                <Button
+                    Content="Apply Mock Policy"
+                    IsEnabled="{x:Bind CanApplyMockPolicy, Mode=OneWay}"
+                    Click="ApplyButton_Click" />
+            </StackPanel>
         </StackPanel>
     </Border>
 </UserControl>

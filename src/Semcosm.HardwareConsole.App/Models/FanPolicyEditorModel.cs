@@ -19,4 +19,8 @@ public sealed class FanPolicyEditorModel
     public string HysteresisText { get; set; } = string.Empty;
     public string RampUpText { get; set; } = string.Empty;
     public string RampDownText { get; set; } = string.Empty;
+    public bool IsDirty { get; set; }
+    public string DraftStateText { get; set; } = string.Empty;
+    public bool CanReset { get; set; }
+    public bool CanApplyMockPolicy { get; set; }
 }

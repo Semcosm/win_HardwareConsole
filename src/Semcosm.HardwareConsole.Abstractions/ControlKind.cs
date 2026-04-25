@@ -7,5 +7,7 @@ public enum ControlKind
     Range,
     Action,
     Curve,
-    Mode
+    Mode,
+    Fan,
+    FanCurve
 }

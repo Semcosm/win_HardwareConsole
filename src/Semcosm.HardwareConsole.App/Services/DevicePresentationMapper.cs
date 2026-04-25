@@ -107,6 +107,8 @@ public sealed class DevicePresentationMapper
         {
             ControlKind.Mode => "mode",
             ControlKind.Curve => "curve",
+            ControlKind.Fan => "%",
+            ControlKind.FanCurve => "curve",
             ControlKind.Range => "profile-defined",
             _ => "unknown"
         };
@@ -145,6 +147,8 @@ public sealed class DevicePresentationMapper
             ControlKind.Mode => "Mode",
             ControlKind.Range => "Range",
             ControlKind.Curve => "Curve",
+            ControlKind.Fan => "Fan",
+            ControlKind.FanCurve => "Fan Curve",
             _ => "Unknown"
         };
     }

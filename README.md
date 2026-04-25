@@ -208,7 +208,7 @@ Shows:
 - curve points, hysteresis, ramp-up and ramp-down mock fields
 - runtime preview that only shows would-set policy behavior
 
-`Fans` currently previews mock policy behavior only. It does not write real fan controller state.
+`Fans` currently previews mock policy behavior only. It does not write real fan controller state. The preview contract is now structured around required sensors, would-set controls, blocked reasons and diagnostics instead of relying on summary strings alone.
 
 ### Profiles
 

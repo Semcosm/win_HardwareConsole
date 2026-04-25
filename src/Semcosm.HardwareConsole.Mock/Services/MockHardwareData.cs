@@ -42,12 +42,18 @@ internal static class MockHardwareData
 
     public static IReadOnlyList<SensorDescriptor> Sensors { get; } = new List<SensorDescriptor>
     {
-        new("sensor.cpu.temperature", "CPU Temperature", "device.cpu.intel-13900hx", SensorKind.Temperature, "C"),
+        new("sensor.cpu.temperature", "CPU Package Temp", "device.cpu.intel-13900hx", SensorKind.Temperature, "C")
+        {
+            CapabilityTags = new[] { "fan.policy.input" }
+        },
         new("sensor.cpu.package_power", "CPU Package Power", "device.cpu.intel-13900hx", SensorKind.Power, "W"),
         new("sensor.cpu.clock", "CPU Clock", "device.cpu.intel-13900hx", SensorKind.Clock, "GHz"),
         new("sensor.cpu.power_limits", "CPU Power Limits", "device.cpu.intel-13900hx", SensorKind.Text, string.Empty),
         new("sensor.cpu.status", "CPU Status", "device.cpu.intel-13900hx", SensorKind.State, string.Empty),
-        new("sensor.gpu.temperature", "GPU Temperature", "device.gpu.rtx4060-laptop", SensorKind.Temperature, "C"),
+        new("sensor.gpu.temperature", "GPU Temp", "device.gpu.rtx4060-laptop", SensorKind.Temperature, "C")
+        {
+            CapabilityTags = new[] { "fan.policy.input" }
+        },
         new("sensor.gpu.board_power", "GPU Board Power", "device.gpu.rtx4060-laptop", SensorKind.Power, "W"),
         new("sensor.gpu.clock", "GPU Clock", "device.gpu.rtx4060-laptop", SensorKind.Clock, "MHz"),
         new("sensor.gpu.power_limit", "GPU Power Limit", "device.gpu.rtx4060-laptop", SensorKind.Text, string.Empty),
@@ -57,7 +63,10 @@ internal static class MockHardwareData
         new("sensor.fan.cpu_rpm", "CPU Fan RPM", "device.platform.mock-host", SensorKind.FanSpeed, "RPM"),
         new("sensor.fan.gpu_rpm", "GPU Fan RPM", "device.platform.mock-host", SensorKind.FanSpeed, "RPM"),
         new("sensor.fan.response", "Fan Response", "device.platform.mock-host", SensorKind.Text, string.Empty),
-        new("sensor.thermal.max_cpu_gpu", "Max(CPU, GPU)", "device.platform.mock-host", SensorKind.Temperature, "C"),
+        new("sensor.thermal.max_cpu_gpu", "Max(CPU, GPU)", "device.platform.mock-host", SensorKind.Temperature, "C")
+        {
+            CapabilityTags = new[] { "fan.policy.input" }
+        },
         new("sensor.power.state", "Power State", "device.platform.mock-host", SensorKind.State, string.Empty),
         new("sensor.power.summary", "Power Summary", "device.platform.mock-host", SensorKind.Text, string.Empty),
         new("sensor.power.details", "Power Details", "device.platform.mock-host", SensorKind.Text, string.Empty),
@@ -70,9 +79,18 @@ internal static class MockHardwareData
     {
         new("control.cpu.power_limits", "CPU Power Limits", "device.cpu.intel-13900hx", ControlKind.Range, ControlRiskLevel.SafeControl),
         new("control.gpu.power_limit", "GPU Power Limit", "device.gpu.rtx4060-laptop", ControlKind.Range, ControlRiskLevel.SafeControl),
-        new("control.fan.cpu_pwm", "CPU Fan PWM", "device.platform.mock-host", ControlKind.Range, ControlRiskLevel.HardwareWrite),
-        new("control.fan.gpu_pwm", "GPU Fan PWM", "device.platform.mock-host", ControlKind.Range, ControlRiskLevel.HardwareWrite),
-        new("control.fan.curve", "Fan Curve", "device.platform.mock-host", ControlKind.Curve, ControlRiskLevel.HardwareWrite),
+        new("control.fan.cpu_pwm", "CPU Fan PWM", "device.platform.mock-host", ControlKind.Fan, ControlRiskLevel.HardwareWrite)
+        {
+            CapabilityTags = new[] { "fan.policy.output" }
+        },
+        new("control.fan.gpu_pwm", "GPU Fan PWM", "device.platform.mock-host", ControlKind.Fan, ControlRiskLevel.HardwareWrite)
+        {
+            CapabilityTags = new[] { "fan.policy.output" }
+        },
+        new("control.fan.curve", "Fan Curve", "device.platform.mock-host", ControlKind.FanCurve, ControlRiskLevel.HardwareWrite)
+        {
+            CapabilityTags = new[] { "fan.policy.output" }
+        },
         new("control.platform.profile", "Platform Profile", "device.platform.mock-host", ControlKind.Mode, ControlRiskLevel.SafeControl)
     };
 

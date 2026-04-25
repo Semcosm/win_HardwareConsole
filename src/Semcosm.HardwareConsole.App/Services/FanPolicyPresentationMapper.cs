@@ -7,6 +7,9 @@ namespace Semcosm.HardwareConsole.App.Services;
 
 public sealed class FanPolicyPresentationMapper
 {
+    private const string FanPolicyInputTag = "fan.policy.input";
+    private const string FanPolicyOutputTag = "fan.policy.output";
+
     private readonly IReadOnlyDictionary<string, ControlDescriptor> _controls;
     private readonly IReadOnlyDictionary<string, PolicyDescriptor> _policies;
     private readonly IReadOnlyDictionary<string, SensorDescriptor> _sensors;
@@ -30,14 +33,12 @@ public sealed class FanPolicyPresentationMapper
     {
         return _sensors.Values
             .Where(sensor => sensor.Kind == SensorKind.Temperature
-                && (sensor.Id == "sensor.cpu.temperature"
-                    || sensor.Id == "sensor.gpu.temperature"
-                    || sensor.Id == "sensor.thermal.max_cpu_gpu"))
-            .OrderBy(GetSensorSortKey)
+                && sensor.CapabilityTags.Contains(FanPolicyInputTag))
+            .OrderBy(sensor => sensor.DisplayName)
             .Select(sensor => new SelectionOptionModel
             {
                 Id = sensor.Id,
-                DisplayName = GetSensorDisplayName(sensor)
+                DisplayName = sensor.DisplayName
             })
             .ToArray();
     }
@@ -45,10 +46,11 @@ public sealed class FanPolicyPresentationMapper
     public IReadOnlyList<SelectionOptionModel> BuildOutputControlOptions()
     {
         return _controls.Values
-            .Where(control => control.Id == "control.fan.cpu_pwm"
-                || control.Id == "control.fan.gpu_pwm"
-                || control.Id == "control.fan.curve")
-            .OrderBy(GetControlSortKey)
+            .Where(control =>
+                (control.Kind == ControlKind.Fan || control.Kind == ControlKind.FanCurve)
+                && control.CapabilityTags.Contains(FanPolicyOutputTag))
+            .OrderBy(control => control.Kind == ControlKind.FanCurve ? 1 : 0)
+            .ThenBy(control => control.DisplayName)
             .Select(control => new SelectionOptionModel
             {
                 Id = control.Id,
@@ -59,6 +61,7 @@ public sealed class FanPolicyPresentationMapper
 
     public FanPolicyEditorModel MapPolicyEditor(
         FanCurvePolicyDescriptor policy,
+        FanPolicyDraftModel draft,
         IReadOnlyList<SelectionOptionModel> inputSensorOptions,
         IReadOnlyList<SelectionOptionModel> outputControlOptions)
     {
@@ -74,14 +77,20 @@ public sealed class FanPolicyPresentationMapper
             ScopeText = $"{policy.Scope} fan policy",
             PolicyText = $"Rule: {policyText}",
             RiskLevel = policy.RiskLevel,
-            SelectedInputSensorId = policy.InputSensorId,
-            SelectedOutputControlId = policy.OutputControlId,
+            SelectedInputSensorId = draft.SelectedInputSensorId,
+            SelectedOutputControlId = draft.SelectedOutputControlId,
             InputSensorOptions = inputSensorOptions,
             OutputControlOptions = outputControlOptions,
             CurvePoints = policy.Points.Select(MapCurvePoint).ToArray(),
             HysteresisText = $"{policy.HysteresisDegrees:0.#}°C",
             RampUpText = $"{policy.RampUpSeconds:0.#}s",
-            RampDownText = $"{policy.RampDownSeconds:0.#}s"
+            RampDownText = $"{policy.RampDownSeconds:0.#}s",
+            IsDirty = draft.IsDirty,
+            DraftStateText = draft.IsDirty
+                ? "Draft changes pending"
+                : "Saved mock policy",
+            CanReset = draft.IsDirty,
+            CanApplyMockPolicy = draft.IsDirty
         };
     }
 
@@ -97,10 +106,23 @@ public sealed class FanPolicyPresentationMapper
             Title = preview.Policy.DisplayName,
             Description = preview.Policy.Description,
             ScopeText = $"{preview.Policy.Scope} fan policy",
+            StatusText = preview.Success ? "Preview Ready" : "Preview Blocked",
+            FailureCodeText = GetFailureCodeText(preview.FailureCode),
             InputSensorText = $"Input Sensor: {GetSensorName(preview.Policy.InputSensorId)}",
             OutputControlText = $"Output Control: {GetControlName(preview.Policy.OutputControlId)}",
-            WouldSetSummary = preview.WouldSetSummary,
-            TimingSummary = preview.TimingSummary,
+            WouldSetSummary = preview.WouldSetControlIds.Count == 0
+                ? "Would Set Controls: none"
+                : $"Would Set Controls: {string.Join(" · ", preview.WouldSetControlIds.Select(GetControlName))}",
+            RequiredSensorsSummary = preview.RequiredSensorIds.Count == 0
+                ? "Required Sensors: none"
+                : $"Required Sensors: {string.Join(" · ", preview.RequiredSensorIds.Select(GetSensorName))}",
+            BlockedReasonsSummary = preview.BlockedReasons.Count == 0
+                ? "Blocked Reasons: none"
+                : $"Blocked Reasons: {string.Join(" · ", preview.BlockedReasons)}",
+            DiagnosticsSummary = preview.Diagnostics.Count == 0
+                ? "Diagnostics: none"
+                : $"Diagnostics: {string.Join(" · ", preview.Diagnostics)}",
+            TimingSummary = $"Timing: Hysteresis {preview.Policy.HysteresisDegrees:0.#}°C · Ramp-up {preview.Policy.RampUpSeconds:0.#}s · Ramp-down {preview.Policy.RampDownSeconds:0.#}s",
             Message = preview.Message,
             RiskLevel = preview.Policy.RiskLevel
         };
@@ -118,7 +140,7 @@ public sealed class FanPolicyPresentationMapper
     private string GetSensorName(string sensorId)
     {
         return _sensors.TryGetValue(sensorId, out var sensor)
-            ? GetSensorDisplayName(sensor)
+            ? sensor.DisplayName
             : sensorId;
     }
 
@@ -129,36 +151,16 @@ public sealed class FanPolicyPresentationMapper
             : controlId;
     }
 
-    private static string GetSensorDisplayName(SensorDescriptor sensor)
+    private static string GetFailureCodeText(PolicyPreviewFailureCode failureCode)
     {
-        return sensor.Id switch
+        return failureCode switch
         {
-            "sensor.cpu.temperature" => "CPU Package Temp",
-            "sensor.gpu.temperature" => "GPU Temp",
-            "sensor.thermal.max_cpu_gpu" => "Max(CPU, GPU)",
-            _ => sensor.DisplayName
-        };
-    }
-
-    private static int GetSensorSortKey(SensorDescriptor sensor)
-    {
-        return sensor.Id switch
-        {
-            "sensor.cpu.temperature" => 0,
-            "sensor.gpu.temperature" => 1,
-            "sensor.thermal.max_cpu_gpu" => 2,
-            _ => 100
-        };
-    }
-
-    private static int GetControlSortKey(ControlDescriptor control)
-    {
-        return control.Id switch
-        {
-            "control.fan.cpu_pwm" => 0,
-            "control.fan.gpu_pwm" => 1,
-            "control.fan.curve" => 2,
-            _ => 100
+            PolicyPreviewFailureCode.None => "No failure",
+            PolicyPreviewFailureCode.InvalidPolicy => "Invalid Policy",
+            PolicyPreviewFailureCode.MissingRequiredSensor => "Missing Required Sensor",
+            PolicyPreviewFailureCode.UnsupportedControl => "Unsupported Control",
+            PolicyPreviewFailureCode.RuntimeError => "Runtime Error",
+            _ => "Unknown"
         };
     }
 }
