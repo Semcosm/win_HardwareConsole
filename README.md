@@ -17,9 +17,10 @@ Current app goals:
 
 - `Dashboard` shows unified hardware state through bound view models instead of hard-coded UI.
 - `Devices` shows mock hardware inventory, capability ownership, sensors, controls and plugin source hints.
+- `Fans` now provides a mock fan policy editor with runtime preview, without writing real hardware.
 - `Plugins` shows capability providers, risk level, matched devices, and extension metadata.
 - `Profiles` now drives a mock profile runtime with preview/apply flows and updates Dashboard active profile state without writing real hardware.
-- Other pages already exist as placeholders for the next phase: `Performance`, `Fans`, `Power`, `Thermal`, `Scheduler`, `Diagnostics`, `Settings`.
+- Other pages already exist as placeholders for the next phase: `Performance`, `Power`, `Thermal`, `Scheduler`, `Diagnostics`, `Settings`.
 
 ## Current Stack
 
@@ -185,6 +186,29 @@ Shows:
 - plugin source hints from explicit mock provider ownership, not string heuristics
 
 Current control values on `Devices` are labeled as mock targets from the active profile runtime, not as real hardware runtime values.
+
+### Fans
+
+Backed by:
+
+- `src/Semcosm.HardwareConsole.Abstractions/FanCurvePoint.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/FanCurvePolicyDescriptor.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/PolicyRuntimePreview.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/IPolicyRuntimeService.cs`
+- `src/Semcosm.HardwareConsole.Mock/Services/MockPolicyRuntimeService.cs`
+- `src/Semcosm.HardwareConsole.App/Services/FanPolicyPresentationMapper.cs`
+- `src/Semcosm.HardwareConsole.App/ViewModels/FansViewModel.cs`
+- `src/Semcosm.HardwareConsole.App/Views/FansPage.xaml`
+
+Shows:
+
+- CPU, GPU and platform fan policies
+- selectable input sensors such as `CPU Package Temp`, `GPU Temp` and `Max(CPU, GPU)`
+- selectable output controls such as `CPU Fan PWM`, `GPU Fan PWM` and `Fan Curve`
+- curve points, hysteresis, ramp-up and ramp-down mock fields
+- runtime preview that only shows would-set policy behavior
+
+`Fans` currently previews mock policy behavior only. It does not write real fan controller state.
 
 ### Profiles
 

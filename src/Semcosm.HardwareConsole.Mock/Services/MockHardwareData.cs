@@ -57,6 +57,7 @@ internal static class MockHardwareData
         new("sensor.fan.cpu_rpm", "CPU Fan RPM", "device.platform.mock-host", SensorKind.FanSpeed, "RPM"),
         new("sensor.fan.gpu_rpm", "GPU Fan RPM", "device.platform.mock-host", SensorKind.FanSpeed, "RPM"),
         new("sensor.fan.response", "Fan Response", "device.platform.mock-host", SensorKind.Text, string.Empty),
+        new("sensor.thermal.max_cpu_gpu", "Max(CPU, GPU)", "device.platform.mock-host", SensorKind.Temperature, "C"),
         new("sensor.power.state", "Power State", "device.platform.mock-host", SensorKind.State, string.Empty),
         new("sensor.power.summary", "Power Summary", "device.platform.mock-host", SensorKind.Text, string.Empty),
         new("sensor.power.details", "Power Details", "device.platform.mock-host", SensorKind.Text, string.Empty),
@@ -69,6 +70,8 @@ internal static class MockHardwareData
     {
         new("control.cpu.power_limits", "CPU Power Limits", "device.cpu.intel-13900hx", ControlKind.Range, ControlRiskLevel.SafeControl),
         new("control.gpu.power_limit", "GPU Power Limit", "device.gpu.rtx4060-laptop", ControlKind.Range, ControlRiskLevel.SafeControl),
+        new("control.fan.cpu_pwm", "CPU Fan PWM", "device.platform.mock-host", ControlKind.Range, ControlRiskLevel.HardwareWrite),
+        new("control.fan.gpu_pwm", "GPU Fan PWM", "device.platform.mock-host", ControlKind.Range, ControlRiskLevel.HardwareWrite),
         new("control.fan.curve", "Fan Curve", "device.platform.mock-host", ControlKind.Curve, ControlRiskLevel.HardwareWrite),
         new("control.platform.profile", "Platform Profile", "device.platform.mock-host", ControlKind.Mode, ControlRiskLevel.SafeControl)
     };
@@ -214,6 +217,9 @@ internal static class MockHardwareData
 
     public static IReadOnlyList<PolicyDescriptor> Policies { get; } = new List<PolicyDescriptor>
     {
+        new("policy.fan.cpu", "CPU Fan Policy", "CPU fan PWM follows CPU package temperature through a mock fan curve.", new[] { "sensor.cpu.temperature" }, new[] { "cap.fan.control", "cap.cpu.telemetry" }),
+        new("policy.fan.gpu", "GPU Fan Policy", "GPU fan PWM follows GPU temperature through a mock fan curve.", new[] { "sensor.gpu.temperature" }, new[] { "cap.fan.control", "cap.gpu.telemetry" }),
+        new("policy.fan.platform", "Platform Fan Policy", "Platform fan strategy follows Max(CPU, GPU) through a shared mock curve.", new[] { "sensor.thermal.max_cpu_gpu" }, new[] { "cap.fan.control", "cap.thermal.policy" }),
         new("policy.thermal.default", "Default Thermal Chain", "Thermal limits and emergency handling chain.", new[] { "sensor.cpu.temperature", "sensor.gpu.temperature" }, new[] { "cap.thermal.policy" }),
         new("policy.thermal.quiet", "Quiet Thermal Chain", "Lower fan ramp strategy and conservative thermal targets.", new[] { "sensor.cpu.temperature", "sensor.gpu.temperature" }, new[] { "cap.thermal.policy", "cap.fan.control" }),
         new("policy.thermal.turbo", "Turbo Thermal Chain", "Elevated fan response and higher thermal limits for burst performance.", new[] { "sensor.cpu.temperature", "sensor.gpu.temperature" }, new[] { "cap.thermal.policy", "cap.fan.control" }),
@@ -221,6 +227,65 @@ internal static class MockHardwareData
         new("policy.scheduler.compile", "Compile Scheduler Policy", "Favors sustained CPU throughput and stable background scheduling.", new[] { "sensor.cpu.package_power" }, new[] { "cap.scheduler.policy" }),
         new("policy.scheduler.streaming", "Streaming Scheduler Policy", "Reserves foreground responsiveness for capture and broadcast tasks.", new[] { "sensor.gpu.clock" }, new[] { "cap.scheduler.policy" }),
         new("policy.power.battery", "Battery Saver Policy", "Reduces power targets and discourages boost while on battery.", new[] { "sensor.power.state" }, new[] { "cap.power.policy" })
+    };
+
+    public static IReadOnlyList<FanCurvePolicyDescriptor> FanCurvePolicies { get; } = new List<FanCurvePolicyDescriptor>
+    {
+        new(
+            "fan-policy.cpu",
+            "policy.fan.cpu",
+            "CPU",
+            "CPU Fan Policy",
+            "CPU package temperature drives the CPU fan PWM curve in mock mode.",
+            "sensor.cpu.temperature",
+            "control.fan.cpu_pwm",
+            new[]
+            {
+                CurvePoint(50, 30),
+                CurvePoint(70, 55),
+                CurvePoint(90, 100)
+            },
+            3,
+            2,
+            8,
+            HardwareRiskLevel.HardwareWrite),
+        new(
+            "fan-policy.gpu",
+            "policy.fan.gpu",
+            "GPU",
+            "GPU Fan Policy",
+            "GPU temperature drives the GPU fan PWM curve in mock mode.",
+            "sensor.gpu.temperature",
+            "control.fan.gpu_pwm",
+            new[]
+            {
+                CurvePoint(48, 28),
+                CurvePoint(68, 58),
+                CurvePoint(88, 100)
+            },
+            3,
+            2,
+            7,
+            HardwareRiskLevel.HardwareWrite),
+        new(
+            "fan-policy.platform",
+            "policy.fan.platform",
+            "Platform",
+            "Platform Fan Policy",
+            "Max(CPU, GPU) drives the shared platform fan curve in mock mode.",
+            "sensor.thermal.max_cpu_gpu",
+            "control.fan.curve",
+            new[]
+            {
+                CurvePoint(45, 28),
+                CurvePoint(65, 50),
+                CurvePoint(80, 78),
+                CurvePoint(92, 100)
+            },
+            4,
+            1.5,
+            10,
+            HardwareRiskLevel.HardwareWrite)
     };
 
     public static IReadOnlyList<SensorValue> CurrentSensorValues { get; } = new List<SensorValue>
@@ -240,6 +305,7 @@ internal static class MockHardwareData
         NumericSensor("sensor.fan.cpu_rpm", 4200, "RPM", "CPU 4200 RPM"),
         NumericSensor("sensor.fan.gpu_rpm", 3900, "RPM", "GPU 3900 RPM"),
         TextSensor("sensor.fan.response", "Ramp-up 2s · Ramp-down 8s"),
+        NumericSensor("sensor.thermal.max_cpu_gpu", 82, "°C", "82°C"),
         TextSensor("sensor.power.state", "Plugged in"),
         TextSensor("sensor.power.summary", "AC · High performance"),
         TextSensor("sensor.power.details", "Processor boost enabled · EcoQoS for background"),
@@ -346,12 +412,15 @@ internal static class MockHardwareData
                 "sensor.fan.cpu_rpm",
                 "sensor.fan.gpu_rpm",
                 "sensor.fan.response",
+                "sensor.thermal.max_cpu_gpu",
                 "sensor.thermal.policy",
                 "sensor.thermal.summary",
                 "sensor.thermal.state"
             },
             new[]
             {
+                "control.fan.cpu_pwm",
+                "control.fan.gpu_pwm",
                 "control.fan.curve"
             })
     };
@@ -452,5 +521,10 @@ internal static class MockHardwareData
                 ValueQuality.Good),
             riskLevel,
             requiresConfirmation);
+    }
+
+    private static FanCurvePoint CurvePoint(double inputValue, double outputPercent)
+    {
+        return new FanCurvePoint(inputValue, outputPercent);
     }
 }
