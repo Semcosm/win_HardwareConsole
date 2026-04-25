@@ -63,11 +63,11 @@ public sealed class DevicePresentationMapper
             Id = control.Id,
             DisplayName = control.DisplayName,
             Subtitle = $"{deviceDisplayName} · {GetControlKindText(control.Kind)} · {control.Id}",
-            CurrentValue = activeAction?.TargetValue.FormattedValue ?? "No active profile target",
+            TargetValueText = activeAction?.TargetValue.FormattedValue ?? "No active profile target",
             UnitText = ResolveControlUnit(control, activeAction),
             SourceText = activeProfile is null
-                ? "No active profile"
-                : $"Active profile: {activeProfile.DisplayName}",
+                ? "Mock runtime target unavailable because no profile is active."
+                : $"Mock runtime target from active profile: {activeProfile.DisplayName}",
             RiskLevel = MapRiskLevel(control.RiskLevel)
         };
     }
@@ -80,7 +80,7 @@ public sealed class DevicePresentationMapper
 
         foreach (var plugin in plugins)
         {
-            if (MatchesDevice(device, plugin))
+            if (OwnsDevice(device, plugin))
             {
                 matches.Add(plugin.DisplayName);
             }
@@ -89,51 +89,9 @@ public sealed class DevicePresentationMapper
         return matches;
     }
 
-    private static bool MatchesDevice(DeviceDescriptor device, PluginDescriptor plugin)
+    private static bool OwnsDevice(DeviceDescriptor device, PluginDescriptor plugin)
     {
-        foreach (var matchedDevice in plugin.MatchedDevices)
-        {
-            if (ContainsIgnoreCase(matchedDevice, device.DisplayName)
-                || ContainsIgnoreCase(device.DisplayName, matchedDevice)
-                || ContainsIgnoreCase(matchedDevice, device.Model)
-                || ContainsIgnoreCase(matchedDevice, device.Vendor))
-            {
-                return true;
-            }
-        }
-
-        foreach (var capability in device.CapabilityIds)
-        {
-            if (ContainsIgnoreCase(plugin.Id, capability)
-                || ContainsIgnoreCase(plugin.DisplayName, capability))
-            {
-                return true;
-            }
-        }
-
-        if (device.CapabilityIds.Contains("cap.power.policy") && ContainsIgnoreCase(plugin.Id, "power"))
-        {
-            return true;
-        }
-
-        if (device.CapabilityIds.Contains("cap.gpu.telemetry") && ContainsIgnoreCase(plugin.Id, "nvidia"))
-        {
-            return true;
-        }
-
-        if (device.CapabilityIds.Contains("cap.fan.control") && ContainsIgnoreCase(plugin.DisplayName, "platform"))
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    private static bool ContainsIgnoreCase(string left, string right)
-    {
-        return !string.IsNullOrWhiteSpace(left)
-            && !string.IsNullOrWhiteSpace(right)
-            && left.Contains(right, System.StringComparison.OrdinalIgnoreCase);
+        return plugin.ProvidedDeviceIds.Contains(device.Id);
     }
 
     private static string ResolveControlUnit(

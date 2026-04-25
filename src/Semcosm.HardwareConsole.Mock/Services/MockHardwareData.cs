@@ -266,6 +266,23 @@ internal static class MockHardwareData
             new[]
             {
                 "Windows power subsystem"
+            },
+            new[]
+            {
+                "device.cpu.intel-13900hx",
+                "device.platform.mock-host"
+            },
+            new[]
+            {
+                "sensor.cpu.package_power",
+                "sensor.power.state",
+                "sensor.power.summary",
+                "sensor.power.details"
+            },
+            new[]
+            {
+                "control.cpu.power_limits",
+                "control.platform.profile"
             }),
         new(
             "semcosm.nvidia.nvapi",
@@ -283,6 +300,22 @@ internal static class MockHardwareData
             new[]
             {
                 "NVIDIA GeForce RTX 4060 Laptop"
+            },
+            new[]
+            {
+                "device.gpu.rtx4060-laptop"
+            },
+            new[]
+            {
+                "sensor.gpu.temperature",
+                "sensor.gpu.board_power",
+                "sensor.gpu.clock",
+                "sensor.gpu.power_limit",
+                "sensor.gpu.status"
+            },
+            new[]
+            {
+                "control.gpu.power_limit"
             }),
         new(
             "semcosm.mechrevo.gm6px0x",
@@ -301,6 +334,25 @@ internal static class MockHardwareData
             new[]
             {
                 "MECHREVO Kuangshi16Pro GM6PX0X"
+            },
+            new[]
+            {
+                "device.platform.mock-host"
+            },
+            new[]
+            {
+                "sensor.fan.mode",
+                "sensor.fan.state",
+                "sensor.fan.cpu_rpm",
+                "sensor.fan.gpu_rpm",
+                "sensor.fan.response",
+                "sensor.thermal.policy",
+                "sensor.thermal.summary",
+                "sensor.thermal.state"
+            },
+            new[]
+            {
+                "control.fan.curve"
             })
     };
 

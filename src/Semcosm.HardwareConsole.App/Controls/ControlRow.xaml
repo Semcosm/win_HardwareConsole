@@ -39,7 +39,12 @@
                 <controls:RiskBadge RiskLevel="{x:Bind RiskLevel, Mode=OneWay}" />
 
                 <TextBlock
-                    Text="{x:Bind CurrentValue, Mode=OneWay}"
+                    Text="Mock Target"
+                    HorizontalAlignment="Right"
+                    Opacity="0.68" />
+
+                <TextBlock
+                    Text="{x:Bind TargetValueText, Mode=OneWay}"
                     FontSize="18"
                     FontWeight="SemiBold"
                     TextAlignment="Right" />

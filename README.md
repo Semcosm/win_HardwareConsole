@@ -181,10 +181,10 @@ Shows:
 - mock devices grouped as inventory cards
 - capability ownership per device
 - sensor rows from the current mock snapshot provider
-- control rows with risk level, unit, current target value and owning device
-- plugin source hints for each device
+- control rows with risk level, unit, mock target value and owning device
+- plugin source hints from explicit mock provider ownership, not string heuristics
 
-Current control values on `Devices` come from the active mock profile runtime target, not from real hardware writes.
+Current control values on `Devices` are labeled as mock targets from the active profile runtime, not as real hardware runtime values.
 
 ### Profiles
 

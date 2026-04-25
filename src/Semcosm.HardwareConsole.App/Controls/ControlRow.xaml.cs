@@ -12,8 +12,8 @@ public sealed partial class ControlRow : UserControl
     public static readonly DependencyProperty SubtitleProperty =
         DependencyProperty.Register(nameof(Subtitle), typeof(string), typeof(ControlRow), new PropertyMetadata(string.Empty));
 
-    public static readonly DependencyProperty CurrentValueProperty =
-        DependencyProperty.Register(nameof(CurrentValue), typeof(string), typeof(ControlRow), new PropertyMetadata(string.Empty));
+    public static readonly DependencyProperty TargetValueTextProperty =
+        DependencyProperty.Register(nameof(TargetValueText), typeof(string), typeof(ControlRow), new PropertyMetadata(string.Empty));
 
     public static readonly DependencyProperty UnitTextProperty =
         DependencyProperty.Register(nameof(UnitText), typeof(string), typeof(ControlRow), new PropertyMetadata(string.Empty));
@@ -41,10 +41,10 @@ public sealed partial class ControlRow : UserControl
         set => SetValue(SubtitleProperty, value);
     }
 
-    public string CurrentValue
+    public string TargetValueText
     {
-        get => (string)GetValue(CurrentValueProperty);
-        set => SetValue(CurrentValueProperty, value);
+        get => (string)GetValue(TargetValueTextProperty);
+        set => SetValue(TargetValueTextProperty, value);
     }
 
     public string UnitText

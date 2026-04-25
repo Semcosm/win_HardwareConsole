@@ -9,4 +9,7 @@ public sealed record PluginDescriptor(
     string Version,
     HardwareRiskLevel RiskLevel,
     IReadOnlyList<string> Capabilities,
-    IReadOnlyList<string> MatchedDevices);
+    IReadOnlyList<string> MatchedDevices,
+    IReadOnlyList<string> ProvidedDeviceIds,
+    IReadOnlyList<string> ProvidedSensorIds,
+    IReadOnlyList<string> ProvidedControlIds);

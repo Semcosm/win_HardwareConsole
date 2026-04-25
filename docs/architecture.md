@@ -100,6 +100,6 @@ Current PR9 boundary:
 
 - `DevicesPage` renders mock inventory from `IHardwareInventoryService`
 - sensor rows use `ISensorSnapshotProvider`
-- control rows use the active mock profile target as the current value source
-- plugin source hints are presentation-layer mappings only
+- control rows use the active mock profile target as the target-value source
+- plugin source hints now come from explicit mock provider ownership fields on `PluginDescriptor`
 - no real hardware write path is implemented yet

@@ -106,7 +106,7 @@
                                 Margin="0,0,0,10"
                                 DisplayName="{x:Bind DisplayName}"
                                 Subtitle="{x:Bind Subtitle}"
-                                CurrentValue="{x:Bind CurrentValue}"
+                                TargetValueText="{x:Bind TargetValueText}"
                                 UnitText="{x:Bind UnitText}"
                                 SourceText="{x:Bind SourceText}"
                                 RiskLevel="{x:Bind RiskLevel}" />

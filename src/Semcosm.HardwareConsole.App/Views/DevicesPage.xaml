@@ -24,7 +24,7 @@
                         FontWeight="SemiBold" />
 
                     <TextBlock
-                        Text="Devices expose capabilities, sensors and controls. Control current values are shown from the active mock profile runtime target, not from real hardware writes."
+                        Text="Devices expose capabilities, sensors and controls. Control values shown here are mock profile targets from the active runtime, not real hardware telemetry or write-back state."
                         TextWrapping="Wrap"
                         Opacity="0.76" />
                 </StackPanel>
