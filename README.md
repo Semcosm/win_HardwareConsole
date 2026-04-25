@@ -18,9 +18,10 @@ Current app goals:
 - `Dashboard` shows unified hardware state through bound view models instead of hard-coded UI.
 - `Devices` shows mock hardware inventory, capability ownership, sensors, controls and plugin source hints.
 - `Fans` now provides a mock fan policy editor with runtime preview, without writing real hardware.
+- `Thermal` now provides mock thermal policy-chain preview for staged temperature walls, without writing real hardware.
 - `Plugins` shows capability providers, risk level, matched devices, and extension metadata.
 - `Profiles` now drives a mock profile runtime with preview/apply flows and updates Dashboard active profile state without writing real hardware.
-- Other pages already exist as placeholders for the next phase: `Performance`, `Power`, `Thermal`, `Scheduler`, `Diagnostics`, `Settings`.
+- Other pages already exist as placeholders for the next phase: `Performance`, `Power`, `Scheduler`, `Diagnostics`, `Settings`.
 
 ## Current Stack
 
@@ -210,6 +211,28 @@ Shows:
 
 `Fans` currently previews mock policy behavior only. It does not write real fan controller state. The preview contract is now structured around required sensors, would-set controls, blocked reasons and diagnostics instead of relying on summary strings alone.
 
+### Thermal
+
+Backed by:
+
+- `src/Semcosm.HardwareConsole.Abstractions/ThermalThresholdActionDescriptor.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/ThermalPolicyDescriptor.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/ThermalPolicyPreview.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/ThermalPolicyFailureCode.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/IPolicyRuntimeService.cs`
+- `src/Semcosm.HardwareConsole.Mock/Services/MockPolicyRuntimeService.cs`
+- `src/Semcosm.HardwareConsole.App/Services/ThermalPolicyPresentationMapper.cs`
+- `src/Semcosm.HardwareConsole.App/ViewModels/ThermalViewModel.cs`
+- `src/Semcosm.HardwareConsole.App/Views/ThermalPage.xaml`
+
+Shows:
+
+- built-in mock thermal chains for `Default`, `Quiet`, and `Turbo` thermal policy behavior
+- staged threshold actions such as fan escalation, CPU/GPU power reduction, profile fallback, and background `EcoQoS`
+- preview-only thermal chain diagnostics, required sensors, would-set controls, and failure codes
+
+`Thermal` currently previews mock policy-chain behavior only. It does not start a runtime thermal engine or write real hardware state.
+
 ### Profiles
 
 Backed by:
@@ -248,6 +271,8 @@ The goal is to avoid tying the UI directly to a specific laptop brand, EC interf
 That keeps the UI stable when the backend evolves from mock data to real hardware access. The same rule now applies to navigation: the shell reads built-in routes from a registry instead of hard-coding page switches in `MainWindow`.
 
 Profiles now follow the same separation: inventory still describes what profiles exist, `IProfileRuntimeService` owns which profile is active and what a profile would do, and `ProfilePresentationMapper` maps profile/runtime contracts into the UI models used by the page.
+
+Thermal policies now follow the same pattern as fan policies: the page binds descriptor-driven mock chains from `IPolicyRuntimeService`, while preview returns structured thermal-policy diagnostics instead of raw summary strings.
 
 ## Run
 
@@ -302,9 +327,18 @@ That is intentional while the project is still using WinUI, XAML, DI, and future
 - `Apply Mock Profile` updates mock runtime state and Dashboard active profile state
 - no real hardware write is performed yet
 
+## Thermal Policy Notes
+
+`Thermal` currently uses mock preview only.
+
+- threshold actions describe what control changes would happen as temperature walls are crossed
+- preview shows required sensors, would-set controls, blocked reasons, and diagnostics
+- no runtime thermal engine or real hardware write path is implemented yet
+
 ## Next Suggested Steps
 
 - Introduce real plugin manifest loading
 - Replace mock providers with real inventory, plugin registry and snapshot providers
 - Introduce a real profile runtime that writes validated control changes instead of mock state updates
+- Introduce a real thermal runtime that can evaluate staged thresholds against validated hardware data
 - Add a plugin route provider that can contribute pages to the navigation registry

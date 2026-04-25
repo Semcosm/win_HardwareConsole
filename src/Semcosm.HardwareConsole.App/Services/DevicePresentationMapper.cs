@@ -105,6 +105,7 @@ public sealed class DevicePresentationMapper
 
         return control.Kind switch
         {
+            ControlKind.Toggle => "toggle",
             ControlKind.Mode => "mode",
             ControlKind.Curve => "curve",
             ControlKind.Fan => "%",
@@ -144,6 +145,7 @@ public sealed class DevicePresentationMapper
     {
         return controlKind switch
         {
+            ControlKind.Toggle => "Toggle",
             ControlKind.Mode => "Mode",
             ControlKind.Range => "Range",
             ControlKind.Curve => "Curve",

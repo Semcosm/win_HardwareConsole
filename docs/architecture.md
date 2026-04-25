@@ -111,3 +111,12 @@ Current PR10 boundary:
 - preview now returns structured policy-preview data including required sensors, would-set controls, blocked reasons and diagnostics
 - fan policies reference the same sensor/control ids already exposed on `DevicesPage`
 - no real hardware write path is implemented yet
+
+Current PR11 boundary:
+
+- `ThermalPage` renders mock thermal policy chains from `IPolicyRuntimeService`
+- `ThermalPolicyDescriptor` expresses staged threshold actions instead of real thermal-engine state
+- `ThermalThresholdActionDescriptor` describes which control would change at which temperature wall
+- thermal preview returns structured required-sensor, would-set-control, blocked-reason and diagnostic data
+- thermal chains reuse the same sensor/control inventory already exposed on `DevicesPage`
+- no runtime thermal engine or real hardware write path is implemented yet

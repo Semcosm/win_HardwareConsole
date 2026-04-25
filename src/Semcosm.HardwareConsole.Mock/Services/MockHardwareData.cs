@@ -91,6 +91,7 @@ internal static class MockHardwareData
         {
             CapabilityTags = new[] { "fan.policy.output" }
         },
+        new("control.scheduler.background_ecoqos", "Background EcoQoS", "device.platform.mock-host", ControlKind.Toggle, ControlRiskLevel.SafeControl),
         new("control.platform.profile", "Platform Profile", "device.platform.mock-host", ControlKind.Mode, ControlRiskLevel.SafeControl)
     };
 
@@ -306,6 +307,78 @@ internal static class MockHardwareData
             HardwareRiskLevel.HardwareWrite)
     };
 
+    public static IReadOnlyList<ThermalPolicyDescriptor> ThermalPolicies { get; } = new List<ThermalPolicyDescriptor>
+    {
+        new(
+            "thermal-policy.default",
+            "policy.thermal.default",
+            "Balanced",
+            "Default Thermal Chain",
+            "Balanced thermal chain that escalates cooling and power controls as CPU and GPU temperatures climb.",
+            new[]
+            {
+                "sensor.cpu.temperature",
+                "sensor.gpu.temperature",
+                "sensor.thermal.max_cpu_gpu"
+            },
+            new[]
+            {
+                ThermalAction("sensor.cpu.temperature", 88, "CPU Stage 1", "control.fan.cpu_pwm", 72, "%", "72%", ControlRiskLevel.HardwareWrite),
+                ThermalAction("sensor.cpu.temperature", 92, "CPU Stage 2", "control.cpu.power_limits", "PL1 70W / PL2 110W", ControlRiskLevel.SafeControl),
+                ThermalAction("sensor.gpu.temperature", 86, "GPU Stage 1", "control.gpu.power_limit", 100, "W", "100W", ControlRiskLevel.SafeControl),
+                ThermalAction("sensor.thermal.max_cpu_gpu", 94, "Platform Stage 1", "control.platform.profile", "Balanced", ControlRiskLevel.SafeControl)
+            },
+            2,
+            15,
+            HardwareRiskLevel.HardwareWrite),
+        new(
+            "thermal-policy.quiet",
+            "policy.thermal.quiet",
+            "Quiet",
+            "Quiet Thermal Chain",
+            "Noise-aware thermal chain that prefers shared curve changes before stronger power-limit reductions.",
+            new[]
+            {
+                "sensor.cpu.temperature",
+                "sensor.gpu.temperature",
+                "sensor.thermal.max_cpu_gpu"
+            },
+            new[]
+            {
+                ThermalAction("sensor.thermal.max_cpu_gpu", 82, "Quiet Stage 1", "control.fan.curve", "Quiet Thermal Curve", ControlRiskLevel.HardwareWrite),
+                ThermalAction("sensor.cpu.temperature", 90, "Quiet Stage 2", "control.cpu.power_limits", "PL1 55W / PL2 85W", ControlRiskLevel.SafeControl),
+                ThermalAction("sensor.gpu.temperature", 88, "Quiet Stage 3", "control.gpu.power_limit", 85, "W", "85W", ControlRiskLevel.SafeControl),
+                ThermalAction("sensor.thermal.max_cpu_gpu", 93, "Quiet Stage 4", "control.platform.profile", "Silent", ControlRiskLevel.SafeControl)
+            },
+            3,
+            20,
+            HardwareRiskLevel.HardwareWrite),
+        new(
+            "thermal-policy.turbo",
+            "policy.thermal.turbo",
+            "Turbo",
+            "Turbo Guardrail Chain",
+            "Aggressive guardrail chain for sustained high-thermal scenarios with emergency fan, power and scheduler responses.",
+            new[]
+            {
+                "sensor.cpu.temperature",
+                "sensor.gpu.temperature",
+                "sensor.thermal.max_cpu_gpu"
+            },
+            new[]
+            {
+                ThermalAction("sensor.cpu.temperature", 84, "Turbo Stage 1", "control.fan.cpu_pwm", 90, "%", "90%", ControlRiskLevel.HardwareWrite),
+                ThermalAction("sensor.gpu.temperature", 84, "Turbo Stage 2", "control.fan.gpu_pwm", 88, "%", "88%", ControlRiskLevel.HardwareWrite),
+                ThermalAction("sensor.thermal.max_cpu_gpu", 92, "Turbo Stage 3", "control.cpu.power_limits", "PL1 60W / PL2 90W", ControlRiskLevel.SafeControl),
+                ThermalAction("sensor.thermal.max_cpu_gpu", 92, "Turbo Stage 4", "control.gpu.power_limit", 80, "W", "80W", ControlRiskLevel.SafeControl),
+                ThermalAction("sensor.thermal.max_cpu_gpu", 95, "Turbo Stage 5", "control.scheduler.background_ecoqos", "Enabled", ControlRiskLevel.SafeControl),
+                ThermalAction("sensor.thermal.max_cpu_gpu", 97, "Turbo Stage 6", "control.platform.profile", "Battery", ControlRiskLevel.SafeControl)
+            },
+            1,
+            10,
+            HardwareRiskLevel.HardwareWrite)
+    };
+
     public static IReadOnlyList<SensorValue> CurrentSensorValues { get; } = new List<SensorValue>
     {
         NumericSensor("sensor.cpu.temperature", 82, "°C", "82°C"),
@@ -366,6 +439,7 @@ internal static class MockHardwareData
             new[]
             {
                 "control.cpu.power_limits",
+                "control.scheduler.background_ecoqos",
                 "control.platform.profile"
             }),
         new(
@@ -528,6 +602,60 @@ internal static class MockHardwareData
         bool requiresConfirmation = false)
     {
         return new ProfileControlActionDescriptor(
+            controlId,
+            new ControlValue(
+                controlId,
+                null,
+                formattedValue,
+                string.Empty,
+                formattedValue,
+                SnapshotTimestamp,
+                ValueQuality.Good),
+            riskLevel,
+            requiresConfirmation);
+    }
+
+    private static ThermalThresholdActionDescriptor ThermalAction(
+        string sensorId,
+        double threshold,
+        string stageLabel,
+        string controlId,
+        double numericValue,
+        string unit,
+        string formattedValue,
+        ControlRiskLevel riskLevel,
+        bool requiresConfirmation = false)
+    {
+        return new ThermalThresholdActionDescriptor(
+            sensorId,
+            threshold,
+            stageLabel,
+            controlId,
+            new ControlValue(
+                controlId,
+                numericValue,
+                null,
+                unit,
+                formattedValue,
+                SnapshotTimestamp,
+                ValueQuality.Good),
+            riskLevel,
+            requiresConfirmation);
+    }
+
+    private static ThermalThresholdActionDescriptor ThermalAction(
+        string sensorId,
+        double threshold,
+        string stageLabel,
+        string controlId,
+        string formattedValue,
+        ControlRiskLevel riskLevel,
+        bool requiresConfirmation = false)
+    {
+        return new ThermalThresholdActionDescriptor(
+            sensorId,
+            threshold,
+            stageLabel,
             controlId,
             new ControlValue(
                 controlId,

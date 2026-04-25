@@ -9,6 +9,8 @@ public sealed class MockPolicyRuntimeService : IPolicyRuntimeService
 {
     public IReadOnlyList<FanCurvePolicyDescriptor> GetAvailableFanPolicies() => MockHardwareData.FanCurvePolicies;
 
+    public IReadOnlyList<ThermalPolicyDescriptor> GetAvailableThermalPolicies() => MockHardwareData.ThermalPolicies;
+
     public PolicyRuntimePreview PreviewFanPolicy(FanCurvePolicyDescriptor policy)
     {
         if (policy.Points.Count == 0)
@@ -88,5 +90,90 @@ public sealed class MockPolicyRuntimeService : IPolicyRuntimeService
                 "Preview only. No real hardware controller write is performed."
             },
             "Preview only. No real hardware controller write is performed.");
+    }
+
+    public ThermalPolicyPreview PreviewThermalPolicy(ThermalPolicyDescriptor policy)
+    {
+        if (policy.Actions.Count == 0)
+        {
+            return new ThermalPolicyPreview(
+                false,
+                policy.Id,
+                policy,
+                ThermalPolicyFailureCode.InvalidPolicy,
+                policy.InputSensorIds,
+                Array.Empty<string>(),
+                new[]
+                {
+                    "Thermal policy contains no threshold actions."
+                },
+                new[]
+                {
+                    "Mock runtime rejected the thermal policy because the action chain is empty."
+                },
+                "Preview failed because the thermal action chain is empty.");
+        }
+
+        var missingSensors = policy.InputSensorIds
+            .Where(sensorId => !MockHardwareData.Sensors.Any(sensor => sensor.Id == sensorId))
+            .Distinct()
+            .ToArray();
+
+        if (missingSensors.Length > 0)
+        {
+            return new ThermalPolicyPreview(
+                false,
+                policy.Id,
+                policy,
+                ThermalPolicyFailureCode.MissingRequiredSensor,
+                missingSensors,
+                Array.Empty<string>(),
+                missingSensors.Select(sensorId => $"Required sensor '{sensorId}' is not available in the current mock inventory.").ToArray(),
+                new[]
+                {
+                    "Mock runtime could not resolve all thermal trigger sensors."
+                },
+                "Preview failed because one or more thermal trigger sensors are missing.");
+        }
+
+        var missingControls = policy.Actions
+            .Select(action => action.ControlId)
+            .Where(controlId => !MockHardwareData.Controls.Any(control => control.Id == controlId))
+            .Distinct()
+            .ToArray();
+
+        if (missingControls.Length > 0)
+        {
+            return new ThermalPolicyPreview(
+                false,
+                policy.Id,
+                policy,
+                ThermalPolicyFailureCode.UnsupportedControl,
+                policy.InputSensorIds,
+                missingControls,
+                missingControls.Select(controlId => $"Output control '{controlId}' is not available in the current mock inventory.").ToArray(),
+                new[]
+                {
+                    "Mock runtime could not resolve all thermal output controls."
+                },
+                "Preview failed because one or more thermal controls are unsupported.");
+        }
+
+        return new ThermalPolicyPreview(
+            true,
+            policy.Id,
+            policy,
+            ThermalPolicyFailureCode.None,
+            policy.InputSensorIds,
+            policy.Actions.Select(action => action.ControlId).Distinct().ToArray(),
+            Array.Empty<string>(),
+            new[]
+            {
+                $"Thermal stages: {policy.Actions.Count}",
+                $"Polling every {policy.PollIntervalSeconds:0.#}s",
+                $"Cooldown {policy.CooldownSeconds:0.#}s",
+                "Preview only. No real thermal controller or hardware write is performed."
+            },
+            "Preview only. No real thermal controller or hardware write is performed.");
     }
 }
