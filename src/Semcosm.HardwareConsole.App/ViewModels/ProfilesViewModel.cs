@@ -10,8 +10,8 @@ namespace Semcosm.HardwareConsole.App.ViewModels;
 
 public sealed class ProfilesViewModel : INotifyPropertyChanged
 {
-    private readonly ProfilePresentationMapper _presentationMapper;
     private readonly IProfileRuntimeService _profileRuntimeService;
+    private readonly ProfilePresentationMapper _profilePresentationMapper;
     private ProfileCardModel? _activeProfile;
     private string _confirmationBannerText = string.Empty;
     private string _confirmationCheckText = string.Empty;
@@ -23,11 +23,11 @@ public sealed class ProfilesViewModel : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public ProfilesViewModel(
-        ProfilePresentationMapper presentationMapper,
-        IProfileRuntimeService profileRuntimeService)
+        IProfileRuntimeService profileRuntimeService,
+        ProfilePresentationMapper profilePresentationMapper)
     {
-        _presentationMapper = presentationMapper;
         _profileRuntimeService = profileRuntimeService;
+        _profilePresentationMapper = profilePresentationMapper;
 
         RefreshProfiles();
 
@@ -86,12 +86,12 @@ public sealed class ProfilesViewModel : INotifyPropertyChanged
 
     public void PreviewProfile(string profileId)
     {
-        _previewProfileId = profileId;
+        var preview = _profileRuntimeService.PreviewProfile(profileId);
+        _previewProfileId = preview.Profile?.Id;
         SetApplyConfirmed(false, refreshProfiles: false);
 
-        var preview = _profileRuntimeService.PreviewProfile(profileId);
-
-        UpdatePreview(preview);
+        RebuildPreviewActions(preview.Actions);
+        Preview = _profilePresentationMapper.MapPreview(preview);
         UpdateConfirmationState(preview.Profile);
         RefreshProfiles();
     }
@@ -99,7 +99,7 @@ public sealed class ProfilesViewModel : INotifyPropertyChanged
     public void ApplyProfile(string profileId)
     {
         var profile = FindProfile(profileId);
-        var requiresConfirmation = profile is not null && _presentationMapper.RequiresConfirmation(profile);
+        var requiresConfirmation = profile is not null && _profilePresentationMapper.RequiresConfirmation(profile);
         var useConfirmedMode = requiresConfirmation
             && IsApplyConfirmed
             && string.Equals(_previewProfileId, profileId);
@@ -109,7 +109,14 @@ public sealed class ProfilesViewModel : INotifyPropertyChanged
             useConfirmedMode ? ProfileApplyMode.ActivateConfirmed : ProfileApplyMode.Activate);
 
         _previewProfileId = profileId;
-        UpdateApplyPreview(profile, applyResult);
+        RefreshProfiles();
+
+        var previewActions = applyResult.BlockedActions.Count > 0
+            ? applyResult.BlockedActions
+            : applyResult.WouldSetActions;
+
+        RebuildPreviewActions(previewActions);
+        Preview = _profilePresentationMapper.MapApplyResult(profile, applyResult);
 
         if (applyResult.Success)
         {
@@ -127,7 +134,6 @@ public sealed class ProfilesViewModel : INotifyPropertyChanged
             UpdateConfirmationState(null);
         }
 
-        RefreshProfiles();
     }
 
     private void RefreshProfiles()
@@ -139,19 +145,7 @@ public sealed class ProfilesViewModel : INotifyPropertyChanged
         RebuildCards(CustomProfiles, FilterProfilesByOtherKinds(availableProfiles), activeProfile?.Id);
         ActiveProfile = activeProfile is null
             ? null
-            : _presentationMapper.MapProfileCard(activeProfile, activeProfile.Id, CanApplyProfile(activeProfile));
-    }
-
-    private void UpdatePreview(ProfilePreview preview)
-    {
-        RebuildPreviewActions(preview.Actions);
-        Preview = _presentationMapper.MapPreview(preview);
-    }
-
-    private void UpdateApplyPreview(ProfileDescriptor? profile, ProfileApplyResult applyResult)
-    {
-        RebuildPreviewActions(applyResult.WouldSetActions);
-        Preview = _presentationMapper.MapApplyResult(profile, applyResult);
+            : _profilePresentationMapper.MapProfileCard(activeProfile, activeProfile.Id, IsApplyEnabled(activeProfile));
     }
 
     private void RebuildCards(
@@ -163,7 +157,7 @@ public sealed class ProfilesViewModel : INotifyPropertyChanged
 
         foreach (var profile in profiles)
         {
-            target.Add(_presentationMapper.MapProfileCard(profile, activeProfileId, CanApplyProfile(profile)));
+            target.Add(_profilePresentationMapper.MapProfileCard(profile, activeProfileId, IsApplyEnabled(profile)));
         }
     }
 
@@ -173,17 +167,17 @@ public sealed class ProfilesViewModel : INotifyPropertyChanged
 
         foreach (var action in actions)
         {
-            PreviewActions.Add(_presentationMapper.MapAction(action));
+            PreviewActions.Add(_profilePresentationMapper.MapAction(action));
         }
     }
 
     private void UpdateConfirmationState(ProfileDescriptor? profile)
     {
-        if (profile is not null && _presentationMapper.RequiresConfirmation(profile))
+        if (profile is not null && _profilePresentationMapper.RequiresConfirmation(profile))
         {
             ShowConfirmationGate = true;
-            ConfirmationBannerText = _presentationMapper.GetConfirmationBannerText(profile);
-            ConfirmationCheckText = _presentationMapper.GetConfirmationCheckText(profile);
+            ConfirmationBannerText = _profilePresentationMapper.GetConfirmationBannerText(profile);
+            ConfirmationCheckText = _profilePresentationMapper.GetConfirmationCheckText(profile);
             return;
         }
 
@@ -192,9 +186,9 @@ public sealed class ProfilesViewModel : INotifyPropertyChanged
         ConfirmationCheckText = string.Empty;
     }
 
-    private bool CanApplyProfile(ProfileDescriptor profile)
+    private bool IsApplyEnabled(ProfileDescriptor profile)
     {
-        if (!_presentationMapper.RequiresConfirmation(profile))
+        if (!_profilePresentationMapper.RequiresConfirmation(profile))
         {
             return true;
         }
