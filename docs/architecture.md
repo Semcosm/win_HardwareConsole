@@ -95,3 +95,11 @@ Current PR8 boundary:
 - high-risk profiles must be previewed and confirmed before mock apply is enabled
 - `Apply Mock Profile` only updates mock runtime state today
 - no real hardware write path is implemented yet
+
+Current PR9 boundary:
+
+- `DevicesPage` renders mock inventory from `IHardwareInventoryService`
+- sensor rows use `ISensorSnapshotProvider`
+- control rows use the active mock profile target as the current value source
+- plugin source hints are presentation-layer mappings only
+- no real hardware write path is implemented yet

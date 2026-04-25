@@ -38,8 +38,10 @@ namespace Semcosm.HardwareConsole.App
             services.AddSingleton<IRouteContentFactory, BuiltInPageRouteContentFactory>();
             services.AddSingleton<IPageFactory, PageFactory>();
             services.AddSingleton<INavigationService, NavigationService>();
+            services.AddSingleton<DevicePresentationMapper>();
             services.AddSingleton<ProfilePresentationMapper>();
             services.AddTransient<DashboardViewModel>();
+            services.AddTransient<DevicesViewModel>();
             services.AddTransient<ProfilesViewModel>();
             services.AddTransient<PluginsViewModel>();
             services.AddTransient<MainWindow>();

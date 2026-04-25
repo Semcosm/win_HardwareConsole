@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="Semcosm.HardwareConsole.App.Controls.SensorRow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Semcosm.HardwareConsole.App.Controls"
+    x:DataType="local:SensorRow"
+    x:Name="Root">
+
+    <Border
+        Padding="14"
+        CornerRadius="12"
+        Background="{ThemeResource LayerFillColorDefaultBrush}">
+        <Grid ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Spacing="6">
+                <TextBlock
+                    Text="{x:Bind DisplayName, Mode=OneWay}"
+                    FontWeight="SemiBold" />
+
+                <TextBlock
+                    Text="{x:Bind Subtitle, Mode=OneWay}"
+                    FontFamily="Consolas"
+                    Opacity="0.62"
+                    TextWrapping="Wrap" />
+
+                <TextBlock
+                    Text="{x:Bind QualityText, Mode=OneWay}"
+                    Opacity="0.68" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" HorizontalAlignment="Right" Spacing="6">
+                <TextBlock
+                    Text="{x:Bind CurrentValue, Mode=OneWay}"
+                    FontSize="18"
+                    FontWeight="SemiBold"
+                    TextAlignment="Right" />
+
+                <TextBlock
+                    Text="{x:Bind UnitText, Mode=OneWay}"
+                    HorizontalAlignment="Right"
+                    Opacity="0.68" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

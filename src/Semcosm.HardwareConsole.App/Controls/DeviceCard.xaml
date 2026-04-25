@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="Semcosm.HardwareConsole.App.Controls.DeviceCard"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Semcosm.HardwareConsole.App.Controls"
+    xmlns:local="using:Semcosm.HardwareConsole.App.Controls"
+    xmlns:models="using:Semcosm.HardwareConsole.App.Models"
+    x:DataType="local:DeviceCard"
+    x:Name="Root">
+
+    <Border
+        Padding="20"
+        CornerRadius="16"
+        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+        <StackPanel Spacing="18">
+            <Grid ColumnSpacing="20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Spacing="8">
+                    <TextBlock
+                        Text="{x:Bind DisplayName, Mode=OneWay}"
+                        FontSize="22"
+                        FontWeight="SemiBold" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <controls:CapabilityChip Text="{x:Bind Vendor, Mode=OneWay}" />
+                        <controls:CapabilityChip Text="{x:Bind Model, Mode=OneWay}" />
+                    </StackPanel>
+
+                    <TextBlock
+                        Text="{x:Bind PluginSourceSummary, Mode=OneWay}"
+                        TextWrapping="Wrap"
+                        Opacity="0.72" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Spacing="8">
+                    <controls:CapabilityChip Text="{x:Bind CapabilityCountText, Mode=OneWay}" />
+                    <controls:CapabilityChip Text="{x:Bind SensorCountText, Mode=OneWay}" />
+                    <controls:CapabilityChip Text="{x:Bind ControlCountText, Mode=OneWay}" />
+                </StackPanel>
+            </Grid>
+
+            <StackPanel Spacing="10">
+                <TextBlock Text="Capabilities" FontWeight="SemiBold" />
+                <ItemsControl ItemsSource="{x:Bind Capabilities, Mode=OneWay}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <ItemsWrapGrid Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                            <controls:CapabilityChip
+                                Margin="0,0,8,8"
+                                Text="{x:Bind}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <StackPanel Spacing="10">
+                <TextBlock Text="Plugin Sources" FontWeight="SemiBold" />
+                <ItemsControl ItemsSource="{x:Bind PluginSources, Mode=OneWay}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <ItemsWrapGrid Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                            <controls:CapabilityChip
+                                Margin="0,0,8,8"
+                                Text="{x:Bind}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <StackPanel Spacing="10">
+                <TextBlock Text="Sensors" FontWeight="SemiBold" />
+                <ItemsControl ItemsSource="{x:Bind Sensors, Mode=OneWay}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:SensorRowModel">
+                            <controls:SensorRow
+                                Margin="0,0,0,10"
+                                DisplayName="{x:Bind DisplayName}"
+                                Subtitle="{x:Bind Subtitle}"
+                                CurrentValue="{x:Bind CurrentValue}"
+                                UnitText="{x:Bind UnitText}"
+                                QualityText="{x:Bind QualityText}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <StackPanel Spacing="10">
+                <TextBlock Text="Controls" FontWeight="SemiBold" />
+                <ItemsControl ItemsSource="{x:Bind Controls, Mode=OneWay}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:ControlRowModel">
+                            <controls:ControlRow
+                                Margin="0,0,0,10"
+                                DisplayName="{x:Bind DisplayName}"
+                                Subtitle="{x:Bind Subtitle}"
+                                CurrentValue="{x:Bind CurrentValue}"
+                                UnitText="{x:Bind UnitText}"
+                                SourceText="{x:Bind SourceText}"
+                                RiskLevel="{x:Bind RiskLevel}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</UserControl>

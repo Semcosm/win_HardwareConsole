@@ -16,9 +16,10 @@ src/
 Current app goals:
 
 - `Dashboard` shows unified hardware state through bound view models instead of hard-coded UI.
+- `Devices` shows mock hardware inventory, capability ownership, sensors, controls and plugin source hints.
 - `Plugins` shows capability providers, risk level, matched devices, and extension metadata.
 - `Profiles` now drives a mock profile runtime with preview/apply flows and updates Dashboard active profile state without writing real hardware.
-- Other pages already exist as placeholders for the next phase: `Performance`, `Fans`, `Power`, `Thermal`, `Scheduler`, `Devices`, `Diagnostics`, `Settings`.
+- Other pages already exist as placeholders for the next phase: `Performance`, `Fans`, `Power`, `Thermal`, `Scheduler`, `Diagnostics`, `Settings`.
 
 ## Current Stack
 
@@ -166,6 +167,24 @@ ProfileDescriptor
     -> DashboardViewModel
       -> DashboardPage
 ```
+
+### Devices
+
+Backed by:
+
+- `src/Semcosm.HardwareConsole.App/Services/DevicePresentationMapper.cs`
+- `src/Semcosm.HardwareConsole.App/ViewModels/DevicesViewModel.cs`
+- `src/Semcosm.HardwareConsole.App/Views/DevicesPage.xaml`
+
+Shows:
+
+- mock devices grouped as inventory cards
+- capability ownership per device
+- sensor rows from the current mock snapshot provider
+- control rows with risk level, unit, current target value and owning device
+- plugin source hints for each device
+
+Current control values on `Devices` come from the active mock profile runtime target, not from real hardware writes.
 
 ### Profiles
 

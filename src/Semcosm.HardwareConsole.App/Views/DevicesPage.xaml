@@ -2,10 +2,62 @@
 <Page
     x:Class="Semcosm.HardwareConsole.App.Views.DevicesPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Semcosm.HardwareConsole.App.Controls"
+    xmlns:models="using:Semcosm.HardwareConsole.App.Models">
 
-    <StackPanel Padding="32" Spacing="16">
-        <TextBlock Text="Devices" FontSize="32" FontWeight="SemiBold" />
-        <TextBlock Text="Connected hardware inventory, controller status and capability exposure." Opacity="0.72" />
-    </StackPanel>
+    <ScrollViewer>
+        <StackPanel Padding="32" Spacing="24">
+            <controls:SectionHeader
+                Title="Devices"
+                Description="Mock hardware inventory showing devices, sensors, controls, capability ownership and plugin source hints."
+                TitleFontSize="32" />
+
+            <Border
+                Padding="20"
+                CornerRadius="16"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                <StackPanel Spacing="12">
+                    <TextBlock
+                        Text="Inventory Chain"
+                        FontSize="22"
+                        FontWeight="SemiBold" />
+
+                    <TextBlock
+                        Text="Devices expose capabilities, sensors and controls. Control current values are shown from the active mock profile runtime target, not from real hardware writes."
+                        TextWrapping="Wrap"
+                        Opacity="0.76" />
+                </StackPanel>
+            </Border>
+
+            <ListView
+                ItemsSource="{x:Bind ViewModel.Devices, Mode=OneWay}"
+                SelectionMode="None">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="Padding" Value="0" />
+                        <Setter Property="Margin" Value="0,0,0,16" />
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    </Style>
+                </ListView.ItemContainerStyle>
+
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="models:DeviceCardModel">
+                        <controls:DeviceCard
+                            DisplayName="{x:Bind DisplayName}"
+                            Vendor="{x:Bind Vendor}"
+                            Model="{x:Bind Model}"
+                            CapabilityCountText="{x:Bind CapabilityCountText}"
+                            SensorCountText="{x:Bind SensorCountText}"
+                            ControlCountText="{x:Bind ControlCountText}"
+                            PluginSourceSummary="{x:Bind PluginSourceSummary}"
+                            Capabilities="{x:Bind Capabilities}"
+                            PluginSources="{x:Bind PluginSources}"
+                            Sensors="{x:Bind Sensors}"
+                            Controls="{x:Bind Controls}" />
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </StackPanel>
+    </ScrollViewer>
 </Page>
