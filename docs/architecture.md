@@ -117,6 +117,24 @@ Current PR11 boundary:
 - `ThermalPage` renders mock thermal policy chains from `IPolicyRuntimeService`
 - `ThermalPolicyDescriptor` expresses staged threshold actions instead of real thermal-engine state
 - `ThermalThresholdActionDescriptor` describes which control would change at which temperature wall
+- `MockThermalPolicyValidator` now validates descriptor rules before preview is produced
 - thermal preview returns structured required-sensor, would-set-control, blocked-reason and diagnostic data
 - thermal chains reuse the same sensor/control inventory already exposed on `DevicesPage`
 - no runtime thermal engine or real hardware write path is implemented yet
+
+Current thermal validation boundary:
+
+- `InputSensorIds` must not be empty
+- `PollIntervalSeconds` must be greater than `0`
+- `CooldownSeconds` must be `>= 0`
+- `Actions` must not be empty
+- each action must reference a declared trigger sensor and an existing control
+- trigger thresholds are constrained to a mock-safe `0..120°C` range
+- high-risk actions must require confirmation
+- thresholds for the same trigger sensor must be non-decreasing across the chain
+
+Current policy-preview convergence note:
+
+- `PolicyRuntimePreview` and `ThermalPolicyPreview` intentionally remain separate because the page models differ
+- both previews now carry the same core shape: success state, failure code, required sensors, would-set controls, blocked reasons, diagnostics, and message
+- a later shared interface such as `IPolicyPreviewResult` is a likely cleanup step once more policy pages exist

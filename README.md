@@ -232,6 +232,7 @@ Shows:
 - preview-only thermal chain diagnostics, required sensors, would-set controls, and failure codes
 
 `Thermal` currently previews mock policy-chain behavior only. It does not start a runtime thermal engine or write real hardware state.
+Thermal preview now passes through a dedicated mock validation layer before runtime preview is produced, so invalid thresholds, missing actions, missing sensors/controls, and confirmation gaps surface as structured failure results instead of ad-hoc runtime checks.
 
 ### Profiles
 

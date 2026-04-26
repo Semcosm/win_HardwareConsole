@@ -8,7 +8,6 @@ namespace Semcosm.HardwareConsole.App.Services;
 public sealed class ThermalPolicyPresentationMapper
 {
     private readonly IReadOnlyDictionary<string, ControlDescriptor> _controls;
-    private readonly IReadOnlyDictionary<string, PolicyDescriptor> _policies;
     private readonly IReadOnlyDictionary<string, SensorDescriptor> _sensors;
 
     public ThermalPolicyPresentationMapper(IHardwareInventoryService hardwareInventoryService)
@@ -20,10 +19,6 @@ public sealed class ThermalPolicyPresentationMapper
         _controls = hardwareInventoryService
             .GetControls()
             .ToDictionary(control => control.Id);
-
-        _policies = hardwareInventoryService
-            .GetPolicies()
-            .ToDictionary(policy => policy.Id);
     }
 
     public ThermalPolicyCardModel MapPolicyCard(ThermalPolicyDescriptor policy)

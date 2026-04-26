@@ -323,7 +323,7 @@ internal static class MockHardwareData
             },
             new[]
             {
-                ThermalAction("sensor.cpu.temperature", 88, "CPU Stage 1", "control.fan.cpu_pwm", 72, "%", "72%", ControlRiskLevel.HardwareWrite),
+                ThermalAction("sensor.cpu.temperature", 88, "CPU Stage 1", "control.fan.cpu_pwm", 72, "%", "72%", ControlRiskLevel.HardwareWrite, requiresConfirmation: true),
                 ThermalAction("sensor.cpu.temperature", 92, "CPU Stage 2", "control.cpu.power_limits", "PL1 70W / PL2 110W", ControlRiskLevel.SafeControl),
                 ThermalAction("sensor.gpu.temperature", 86, "GPU Stage 1", "control.gpu.power_limit", 100, "W", "100W", ControlRiskLevel.SafeControl),
                 ThermalAction("sensor.thermal.max_cpu_gpu", 94, "Platform Stage 1", "control.platform.profile", "Balanced", ControlRiskLevel.SafeControl)
@@ -345,7 +345,7 @@ internal static class MockHardwareData
             },
             new[]
             {
-                ThermalAction("sensor.thermal.max_cpu_gpu", 82, "Quiet Stage 1", "control.fan.curve", "Quiet Thermal Curve", ControlRiskLevel.HardwareWrite),
+                ThermalAction("sensor.thermal.max_cpu_gpu", 82, "Quiet Stage 1", "control.fan.curve", "Quiet Thermal Curve", ControlRiskLevel.HardwareWrite, requiresConfirmation: true),
                 ThermalAction("sensor.cpu.temperature", 90, "Quiet Stage 2", "control.cpu.power_limits", "PL1 55W / PL2 85W", ControlRiskLevel.SafeControl),
                 ThermalAction("sensor.gpu.temperature", 88, "Quiet Stage 3", "control.gpu.power_limit", 85, "W", "85W", ControlRiskLevel.SafeControl),
                 ThermalAction("sensor.thermal.max_cpu_gpu", 93, "Quiet Stage 4", "control.platform.profile", "Silent", ControlRiskLevel.SafeControl)
@@ -367,8 +367,8 @@ internal static class MockHardwareData
             },
             new[]
             {
-                ThermalAction("sensor.cpu.temperature", 84, "Turbo Stage 1", "control.fan.cpu_pwm", 90, "%", "90%", ControlRiskLevel.HardwareWrite),
-                ThermalAction("sensor.gpu.temperature", 84, "Turbo Stage 2", "control.fan.gpu_pwm", 88, "%", "88%", ControlRiskLevel.HardwareWrite),
+                ThermalAction("sensor.cpu.temperature", 84, "Turbo Stage 1", "control.fan.cpu_pwm", 90, "%", "90%", ControlRiskLevel.HardwareWrite, requiresConfirmation: true),
+                ThermalAction("sensor.gpu.temperature", 84, "Turbo Stage 2", "control.fan.gpu_pwm", 88, "%", "88%", ControlRiskLevel.HardwareWrite, requiresConfirmation: true),
                 ThermalAction("sensor.thermal.max_cpu_gpu", 92, "Turbo Stage 3", "control.cpu.power_limits", "PL1 60W / PL2 90W", ControlRiskLevel.SafeControl),
                 ThermalAction("sensor.thermal.max_cpu_gpu", 92, "Turbo Stage 4", "control.gpu.power_limit", 80, "W", "80W", ControlRiskLevel.SafeControl),
                 ThermalAction("sensor.thermal.max_cpu_gpu", 95, "Turbo Stage 5", "control.scheduler.background_ecoqos", "Enabled", ControlRiskLevel.SafeControl),
