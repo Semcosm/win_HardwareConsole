@@ -5,7 +5,7 @@ using Semcosm.HardwareConsole.Abstractions;
 
 namespace Semcosm.HardwareConsole.App.Services;
 
-public sealed class DiagnosticsStore : IDiagnosticsSink, IDiagnosticsProvider
+public sealed class DiagnosticsStore : IDiagnosticsSink, IDiagnosticsProvider, IDiagnosticsSessionController
 {
     private const int MaxRecords = 250;
     private readonly object _syncRoot = new();

@@ -37,8 +37,8 @@ public sealed class MockThermalPolicyValidator
                     PolicyValidationSeverity.Error,
                     message,
                     policy.Id,
-                    string.Empty,
-                    string.Empty))
+                    null,
+                    null))
                 .ToArray();
 
             return new ThermalPolicyValidationResult(
@@ -69,7 +69,7 @@ public sealed class MockThermalPolicyValidator
                     PolicyValidationSeverity.Error,
                     $"Required sensor '{sensorId}' is not available in the current mock inventory.",
                     policy.Id,
-                    string.Empty,
+                    null,
                     sensorId))
                 .ToArray();
 
@@ -102,7 +102,7 @@ public sealed class MockThermalPolicyValidator
                     $"Output control '{controlId}' is not available in the current mock inventory.",
                     policy.Id,
                     controlId,
-                    string.Empty))
+                    null))
                 .ToArray();
 
             return new ThermalPolicyValidationResult(

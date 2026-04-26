@@ -53,7 +53,7 @@ public sealed class MockPowerPolicyValidator
                     PolicyValidationSeverity.Error,
                     $"Required sensor '{sensorId}' is not available in the current mock inventory.",
                     policy.Id,
-                    string.Empty,
+                    null,
                     sensorId))
                 .ToArray();
 
@@ -85,7 +85,7 @@ public sealed class MockPowerPolicyValidator
                     $"Output control '{controlId}' is not available in the current mock inventory.",
                     policy.Id,
                     controlId,
-                    string.Empty))
+                    null))
                 .ToArray();
 
             return new PowerPolicyValidationResult(
@@ -234,8 +234,8 @@ public sealed class MockPowerPolicyValidator
         string policyId,
         string code,
         string message,
-        string relatedControlId = "",
-        string relatedSensorId = "")
+        string? relatedControlId = null,
+        string? relatedSensorId = null)
     {
         return new PolicyValidationIssue(
             code,

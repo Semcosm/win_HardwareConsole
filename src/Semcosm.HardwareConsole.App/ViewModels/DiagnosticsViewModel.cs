@@ -25,6 +25,7 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged, IDisposable
     ];
 
     private readonly DispatcherQueue? _dispatcherQueue;
+    private readonly IDiagnosticsSessionController _diagnosticsSessionController;
     private readonly IDiagnosticsProvider _diagnosticsProvider;
     private bool _disposed;
     private string _selectedSeverityFilterId = AllFilterId;
@@ -32,10 +33,13 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged, IDisposable
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public DiagnosticsViewModel(IDiagnosticsProvider diagnosticsProvider)
+    public DiagnosticsViewModel(
+        IDiagnosticsProvider diagnosticsProvider,
+        IDiagnosticsSessionController diagnosticsSessionController)
     {
         _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
         _diagnosticsProvider = diagnosticsProvider;
+        _diagnosticsSessionController = diagnosticsSessionController;
         _diagnosticsProvider.RecordsChanged += DiagnosticsProvider_RecordsChanged;
 
         SystemHealth = new ObservableCollection<DiagnosticCardModel>();
@@ -199,7 +203,7 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged, IDisposable
 
     public void ClearDiagnostics()
     {
-        _diagnosticsProvider.Clear();
+        _diagnosticsSessionController.Clear();
     }
 
     private bool MatchesSelectedFilters(DiagnosticRecord record)

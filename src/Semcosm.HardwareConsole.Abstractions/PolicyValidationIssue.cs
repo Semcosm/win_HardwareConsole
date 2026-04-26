@@ -4,6 +4,6 @@ public sealed record PolicyValidationIssue(
     string Code,
     PolicyValidationSeverity Severity,
     string Message,
-    string RelatedPolicyId,
-    string RelatedControlId,
-    string RelatedSensorId);
+    string? RelatedPolicyId = null,
+    string? RelatedControlId = null,
+    string? RelatedSensorId = null);

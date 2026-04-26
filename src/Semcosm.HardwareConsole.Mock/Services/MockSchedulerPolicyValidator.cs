@@ -196,8 +196,8 @@ public sealed class MockSchedulerPolicyValidator
         string policyId,
         string code,
         string message,
-        string relatedControlId = "",
-        string relatedSensorId = "")
+        string? relatedControlId = null,
+        string? relatedSensorId = null)
     {
         return new PolicyValidationIssue(
             code,

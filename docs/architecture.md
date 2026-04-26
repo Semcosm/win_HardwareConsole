@@ -49,6 +49,7 @@ runtime surface
   -> IDiagnosticsSink
     -> DiagnosticsStore
       -> IDiagnosticsProvider
+      -> IDiagnosticsSessionController
         -> DiagnosticsViewModel
           -> DiagnosticsPage
 ```
@@ -128,6 +129,7 @@ Current PR10 boundary:
 
 - `FansPage` renders mock fan policies from `IFanPolicyRuntimeService`
 - `FanCurvePolicyDescriptor` binds sensors to controls through curve points and timing fields
+- `MockFanPolicyValidator` now validates descriptor rules before preview is produced
 - preview now returns structured policy-preview data including required sensors, would-set controls, blocked reasons and diagnostics
 - fan policies reference the same sensor/control ids already exposed on `DevicesPage`
 - no real hardware write path is implemented yet
@@ -164,7 +166,7 @@ Current PR12 boundary:
 - profile apply results emit diagnostics through `ProfilesViewModel`
 - fan and thermal preview flows emit diagnostics through their page view models
 - `DiagnosticsViewModel` now detaches from the singleton diagnostics provider on disposal and uses the UI dispatcher before rebuilding observable collections
-- diagnostics now support basic severity/source filtering and clearing the current in-memory session log
+- diagnostics now support basic severity/source filtering and clearing the current in-memory session log through `IDiagnosticsSessionController`
 - `DiagnosticSeverity` now reserves `Critical` for future hardware-fault and safety-stop paths
 - `DiagnosticSource` now already reserves future areas such as `Devices`, `Power`, `Scheduler`, `Service`, `PolicyValidation`, and `HardwareAccess`
 - diagnostics currently remain session-scoped; there is no persisted store or external log shipping yet
@@ -184,12 +186,24 @@ Current thermal validation boundary:
 - high-risk actions must require confirmation
 - thresholds for the same trigger sensor must be non-decreasing across the chain
 
+Current fan validation boundary:
+
+- `FanPolicyValidationResult` now brings fan policies into the same shared validation-result family as thermal, power, and scheduler
+- `MockFanPolicyValidator` validates curve presence, input/output selection, temperature sensor kind, sorted curve points, `0..120°C` input range, and `0..100%` output range before preview is produced
+- fan preview now follows the same `validate -> preview` shape as the other policy surfaces
+
 Current power and scheduler validation boundary:
 
 - `MockPowerPolicyValidator` and `MockSchedulerPolicyValidator` now follow the same abstraction-layer validator contract as thermal
 - power policies validate AC/DC action presence, required sensors, supported controls, target compatibility, and confirmation gates before preview is produced
 - scheduler policies validate rule presence, rule metadata, supported controls, target compatibility, and confirmation gates before preview is produced
 - runtime preview services now consume validation results instead of duplicating inline validation logic
+
+Current diagnostics session boundary:
+
+- `IDiagnosticsProvider` is now read-only
+- `IDiagnosticsSessionController` owns destructive session actions such as clearing the in-memory log
+- this keeps page rendering, export/read-only tooling, and future service/plugin surfaces from implicitly receiving log-clear permissions
 
 Current policy-preview convergence note:
 
