@@ -4,7 +4,8 @@ using Semcosm.HardwareConsole.Abstractions;
 
 namespace Semcosm.HardwareConsole.Mock.Services;
 
-internal sealed class MockThermalPolicyValidator
+public sealed class MockThermalPolicyValidator
+    : IPolicyValidator<ThermalPolicyDescriptor, ThermalPolicyValidationResult>
 {
     private readonly IReadOnlyDictionary<string, ControlDescriptor> _controls;
     private readonly IReadOnlyDictionary<string, SensorDescriptor> _sensors;
@@ -30,12 +31,20 @@ internal sealed class MockThermalPolicyValidator
         var descriptorErrors = ValidateDescriptor(policy);
         if (descriptorErrors.Count > 0)
         {
+            var issues = descriptorErrors
+                .Select(message => new PolicyValidationIssue(
+                    "thermal.policy.invalid_descriptor",
+                    PolicyValidationSeverity.Error,
+                    message))
+                .ToArray();
+
             return new ThermalPolicyValidationResult(
                 false,
                 ThermalPolicyFailureCode.InvalidPolicy,
                 requiredSensorIds,
                 wouldSetControlIds,
-                descriptorErrors,
+                issues,
+                issues.Select(issue => issue.Message).ToArray(),
                 new[]
                 {
                     "Mock thermal policy validator rejected descriptor-level constraints."
@@ -50,14 +59,20 @@ internal sealed class MockThermalPolicyValidator
 
         if (missingSensorIds.Length > 0)
         {
+            var issues = missingSensorIds
+                .Select(sensorId => new PolicyValidationIssue(
+                    "thermal.policy.missing_sensor",
+                    PolicyValidationSeverity.Error,
+                    $"Required sensor '{sensorId}' is not available in the current mock inventory."))
+                .ToArray();
+
             return new ThermalPolicyValidationResult(
                 false,
                 ThermalPolicyFailureCode.MissingRequiredSensor,
                 requiredSensorIds,
                 wouldSetControlIds,
-                missingSensorIds
-                    .Select(sensorId => $"Required sensor '{sensorId}' is not available in the current mock inventory.")
-                    .ToArray(),
+                issues,
+                issues.Select(issue => issue.Message).ToArray(),
                 new[]
                 {
                     "Mock thermal policy validator could not resolve all required sensors."
@@ -72,14 +87,20 @@ internal sealed class MockThermalPolicyValidator
 
         if (missingControlIds.Length > 0)
         {
+            var issues = missingControlIds
+                .Select(controlId => new PolicyValidationIssue(
+                    "thermal.policy.unsupported_control",
+                    PolicyValidationSeverity.Error,
+                    $"Output control '{controlId}' is not available in the current mock inventory."))
+                .ToArray();
+
             return new ThermalPolicyValidationResult(
                 false,
                 ThermalPolicyFailureCode.UnsupportedControl,
                 requiredSensorIds,
                 wouldSetControlIds,
-                missingControlIds
-                    .Select(controlId => $"Output control '{controlId}' is not available in the current mock inventory.")
-                    .ToArray(),
+                issues,
+                issues.Select(issue => issue.Message).ToArray(),
                 new[]
                 {
                     "Mock thermal policy validator could not resolve all target controls."
@@ -92,6 +113,7 @@ internal sealed class MockThermalPolicyValidator
             ThermalPolicyFailureCode.None,
             requiredSensorIds,
             wouldSetControlIds,
+            [],
             [],
             new[]
             {

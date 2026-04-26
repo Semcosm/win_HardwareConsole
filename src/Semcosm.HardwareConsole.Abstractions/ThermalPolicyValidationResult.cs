@@ -1,14 +1,13 @@
 using System.Collections.Generic;
-using Semcosm.HardwareConsole.Abstractions;
 
-namespace Semcosm.HardwareConsole.Mock.Services;
+namespace Semcosm.HardwareConsole.Abstractions;
 
-internal sealed record ThermalPolicyValidationResult(
+public sealed record ThermalPolicyValidationResult(
     bool IsValid,
     ThermalPolicyFailureCode FailureCode,
     IReadOnlyList<string> RequiredSensorIds,
     IReadOnlyList<string> WouldSetControlIds,
+    IReadOnlyList<PolicyValidationIssue> Issues,
     IReadOnlyList<string> BlockedReasons,
     IReadOnlyList<string> Diagnostics,
     string Message);
-

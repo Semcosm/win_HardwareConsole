@@ -32,6 +32,7 @@ namespace Semcosm.HardwareConsole.App
             services.AddSingleton<IHardwareInventoryService, MockHardwareInventoryService>();
             services.AddSingleton<IPluginRegistry, MockPluginRegistry>();
             services.AddSingleton<IProfileRuntimeService, MockProfileRuntimeService>();
+            services.AddSingleton<IPolicyValidator<ThermalPolicyDescriptor, ThermalPolicyValidationResult>, MockThermalPolicyValidator>();
             services.AddSingleton<IPolicyRuntimeService, MockPolicyRuntimeService>();
             services.AddSingleton<ISensorSnapshotProvider, MockSensorSnapshotProvider>();
             services.AddSingleton<INavigationRouteProvider, BuiltInNavigationRouteProvider>();

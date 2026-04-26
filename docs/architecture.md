@@ -124,6 +124,10 @@ Current PR11 boundary:
 
 Current thermal validation boundary:
 
+- validation contracts now live in `Semcosm.HardwareConsole.Abstractions`
+- `IPolicyValidator<TPolicy, TValidationResult>` is the shared entry point for policy validation
+- `PolicyValidationIssue` and `PolicyValidationSeverity` provide reusable issue semantics
+- `MockThermalPolicyValidator` is the current mock implementation of the thermal-policy validator contract
 - `InputSensorIds` must not be empty
 - `PollIntervalSeconds` must be greater than `0`
 - `CooldownSeconds` must be `>= 0`

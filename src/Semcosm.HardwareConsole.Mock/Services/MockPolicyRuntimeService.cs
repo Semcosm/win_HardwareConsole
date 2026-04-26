@@ -7,7 +7,13 @@ namespace Semcosm.HardwareConsole.Mock.Services;
 
 public sealed class MockPolicyRuntimeService : IPolicyRuntimeService
 {
-    private readonly MockThermalPolicyValidator _thermalPolicyValidator = new();
+    private readonly IPolicyValidator<ThermalPolicyDescriptor, ThermalPolicyValidationResult> _thermalPolicyValidator;
+
+    public MockPolicyRuntimeService(
+        IPolicyValidator<ThermalPolicyDescriptor, ThermalPolicyValidationResult> thermalPolicyValidator)
+    {
+        _thermalPolicyValidator = thermalPolicyValidator;
+    }
 
     public IReadOnlyList<FanCurvePolicyDescriptor> GetAvailableFanPolicies() => MockHardwareData.FanCurvePolicies;
 
