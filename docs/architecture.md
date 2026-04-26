@@ -58,7 +58,8 @@ Current plugin-manifest shape:
 
 ```text
 plugins/*/plugin.json
-  -> PluginManifestLoader
+  -> IPluginManifestRootProvider
+    -> PluginManifestLoader
     -> PluginManifestValidator
       -> PluginManifestCatalog
         -> manifest-backed plugin registry
@@ -234,10 +235,12 @@ Current diagnostics convergence note:
 Current PR15 boundary:
 
 - plugin manifests now load from `plugins/*/plugin.json`
+- `DevelopmentPluginManifestRootProvider` currently resolves the repo-local `plugins/` root for development runs
 - `PluginManifestDescriptor`, declaration records, and validation results now live in `Semcosm.HardwareConsole.Abstractions`
 - `PluginManifestLoader` parses JSON only; it does not execute plugin code
-- `PluginManifestValidator` validates schema version, duplicate plugin ids, duplicate control ids, and confirmation requirements for high-risk manifests
-- `ManifestBackedPluginRegistry` now maps valid manifests into `PluginDescriptor` for the existing plugin/device UI surfaces
-- manifest load/validation outcomes emit diagnostics such as `plugins.manifest.loaded`, `plugins.manifest.invalid`, `plugins.manifest.duplicate_plugin_id`, `plugins.manifest.duplicate_control_id`, and `plugins.manifest.unsupported_schema_version`
+- `PluginManifestValidator` now validates schema version, duplicate plugin/device/sensor/control/capability ids, duplicate route tags, unsupported route kinds, unknown device references, unknown device capability references, and confirmation requirements for high-risk manifests
+- `PluginManifestCatalog` now exposes `Reload()` so registry and diagnostics refresh flows can converge on one manifest reload boundary later
+- `ManifestBackedPluginRegistry` now maps both valid and invalid manifest outcomes into `PluginDescriptor` cards, and derives `Enabled/Mocked/Failed/Blocked/Unsupported` from validation state instead of hard-coded plugin ids
+- manifest load/validation outcomes emit diagnostics such as `plugins.manifest.loaded`, `plugins.manifest.invalid`, `plugins.manifest.duplicate_plugin_id`, `plugins.manifest.duplicate_control_id`, `plugins.manifest.duplicate_route_tag`, `plugins.manifest.unsupported_schema_version`, and `plugins.manifest.unsupported_route_kind`
 - plugin route declarations are parsed but not executed or registered in the shell yet
 - no plugin code execution or hardware write path is implemented yet

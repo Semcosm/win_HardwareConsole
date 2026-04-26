@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Semcosm.HardwareConsole.Abstractions;
 
@@ -19,7 +20,11 @@ public sealed class PluginManifestDiagnosticsReporter
 
     public void PublishSnapshot()
     {
-        var validationResults = _manifestCatalog.GetValidationResults();
+        PublishSnapshot(_manifestCatalog.GetValidationResults());
+    }
+
+    public void PublishSnapshot(IReadOnlyList<PluginManifestValidationResult> validationResults)
+    {
         if (validationResults.Count == 0)
         {
             _diagnosticsSink.Report(new DiagnosticRecord(
@@ -51,7 +56,7 @@ public sealed class PluginManifestDiagnosticsReporter
                 DiagnosticSource.Plugins,
                 "plugins.manifest.invalid",
                 result.Message,
-                result.PluginId ?? result.ManifestPath,
+                ResolveRelatedId(result),
                 DateTimeOffset.UtcNow));
 
             foreach (var issue in result.Issues)
@@ -62,11 +67,27 @@ public sealed class PluginManifestDiagnosticsReporter
                     $"plugins.{issue.Code}",
                     issue.Message,
                     issue.RelatedControlId
+                        ?? issue.RelatedRouteTag
                         ?? issue.RelatedPluginId
                         ?? issue.RelatedManifestPath
                         ?? result.ManifestPath,
                     DateTimeOffset.UtcNow));
             }
         }
+    }
+
+    private static string ResolveRelatedId(PluginManifestValidationResult result)
+    {
+        if (!string.IsNullOrWhiteSpace(result.PluginId))
+        {
+            return result.PluginId;
+        }
+
+        if (!string.IsNullOrWhiteSpace(result.Manifest?.Id))
+        {
+            return result.Manifest.Id;
+        }
+
+        return result.ManifestPath;
     }
 }

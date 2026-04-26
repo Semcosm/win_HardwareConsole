@@ -34,6 +34,7 @@ namespace Semcosm.HardwareConsole.App
             services.AddSingleton<IDiagnosticsProvider>(serviceProvider => serviceProvider.GetRequiredService<DiagnosticsStore>());
             services.AddSingleton<IDiagnosticsSessionController>(serviceProvider => serviceProvider.GetRequiredService<DiagnosticsStore>());
             services.AddSingleton<IHardwareInventoryService, MockHardwareInventoryService>();
+            services.AddSingleton<IPluginManifestRootProvider, DevelopmentPluginManifestRootProvider>();
             services.AddSingleton<PluginManifestLoader>();
             services.AddSingleton<PluginManifestValidator>();
             services.AddSingleton<PluginManifestCatalog>();

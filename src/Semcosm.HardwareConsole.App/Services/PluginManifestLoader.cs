@@ -9,14 +9,20 @@ namespace Semcosm.HardwareConsole.App.Services;
 
 public sealed class PluginManifestLoader
 {
+    private readonly IPluginManifestRootProvider _manifestRootProvider;
     private readonly JsonSerializerOptions _serializerOptions = new()
     {
         PropertyNameCaseInsensitive = true
     };
 
+    public PluginManifestLoader(IPluginManifestRootProvider manifestRootProvider)
+    {
+        _manifestRootProvider = manifestRootProvider;
+    }
+
     public IReadOnlyList<PluginManifestLoadResult> LoadManifests()
     {
-        var pluginsRoot = ResolvePluginsRoot();
+        var pluginsRoot = _manifestRootProvider.GetPluginsRoot();
         if (pluginsRoot is null)
         {
             return [];
@@ -61,28 +67,6 @@ public sealed class PluginManifestLoader
         }
 
         return results;
-    }
-
-    private static string? ResolvePluginsRoot()
-    {
-        foreach (var candidate in EnumerateCandidateRoots(AppContext.BaseDirectory)
-                     .Concat(EnumerateCandidateRoots(Directory.GetCurrentDirectory())))
-        {
-            if (Directory.Exists(candidate))
-            {
-                return candidate;
-            }
-        }
-
-        return null;
-    }
-
-    private static IEnumerable<string> EnumerateCandidateRoots(string startPath)
-    {
-        for (var directory = new DirectoryInfo(startPath); directory is not null; directory = directory.Parent)
-        {
-            yield return Path.Combine(directory.FullName, "plugins");
-        }
     }
 
     private static PluginManifestDescriptor MapManifest(PluginManifestJson json)

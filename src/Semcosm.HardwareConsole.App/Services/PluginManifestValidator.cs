@@ -8,6 +8,11 @@ namespace Semcosm.HardwareConsole.App.Services;
 public sealed class PluginManifestValidator
 {
     private const string SupportedSchemaVersion = "0.1.0";
+    private static readonly string[] SupportedRouteKinds =
+    [
+        "PluginPage",
+        "ExternalPanel"
+    ];
 
     public IReadOnlyList<PluginManifestValidationResult> Validate(
         IReadOnlyList<PluginManifestLoadResult> loadResults)
@@ -23,7 +28,11 @@ public sealed class PluginManifestValidator
         }
 
         AddDuplicatePluginIdIssues(loadResults, issuesByPath);
+        AddDuplicateCapabilityIdIssues(loadResults, issuesByPath);
+        AddDuplicateDeviceIdIssues(loadResults, issuesByPath);
+        AddDuplicateSensorIdIssues(loadResults, issuesByPath);
         AddDuplicateControlIdIssues(loadResults, issuesByPath);
+        AddDuplicateRouteTagIssues(loadResults, issuesByPath);
 
         return loadResults
             .Select(loadResult =>
@@ -35,7 +44,7 @@ public sealed class PluginManifestValidator
                     isValid,
                     loadResult.ManifestPath,
                     loadResult.Manifest?.Id,
-                    isValid ? loadResult.Manifest : null,
+                    loadResult.Manifest,
                     issues,
                     isValid
                         ? "Plugin manifest validation passed."
@@ -139,6 +148,45 @@ public sealed class PluginManifestValidator
             .Where(id => !string.IsNullOrWhiteSpace(id))
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
+        var capabilityIds = manifest.Capabilities
+            .Select(capability => capability.Id)
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var device in manifest.Devices)
+        {
+            if (string.IsNullOrWhiteSpace(device.Id))
+            {
+                issues.Add(CreateIssue(
+                    "manifest.invalid",
+                    "Device declaration id is required.",
+                    loadResult.ManifestPath,
+                    manifest.Id));
+            }
+
+            foreach (var capabilityId in device.CapabilityIds)
+            {
+                if (string.IsNullOrWhiteSpace(capabilityId))
+                {
+                    issues.Add(CreateIssue(
+                        "manifest.invalid",
+                        $"Device '{device.Id}' contains an empty capability id reference.",
+                        loadResult.ManifestPath,
+                        manifest.Id));
+                    continue;
+                }
+
+                if (!capabilityIds.Contains(capabilityId))
+                {
+                    issues.Add(CreateIssue(
+                        "manifest.invalid",
+                        $"Device '{device.Id}' references unknown capability '{capabilityId}'.",
+                        loadResult.ManifestPath,
+                        manifest.Id));
+                }
+            }
+        }
+
         foreach (var sensor in manifest.Sensors)
         {
             if (string.IsNullOrWhiteSpace(sensor.Id))
@@ -179,6 +227,51 @@ public sealed class PluginManifestValidator
                     loadResult.ManifestPath,
                     manifest.Id,
                     control.Id));
+            }
+        }
+
+        foreach (var capability in manifest.Capabilities)
+        {
+            if (string.IsNullOrWhiteSpace(capability.Id))
+            {
+                issues.Add(CreateIssue(
+                    "manifest.invalid",
+                    "Capability declaration id is required.",
+                    loadResult.ManifestPath,
+                    manifest.Id));
+            }
+        }
+
+        foreach (var route in manifest.Routes)
+        {
+            if (string.IsNullOrWhiteSpace(route.Tag))
+            {
+                issues.Add(CreateIssue(
+                    "manifest.invalid",
+                    "Route declaration tag is required.",
+                    loadResult.ManifestPath,
+                    manifest.Id));
+            }
+
+            if (string.IsNullOrWhiteSpace(route.Title))
+            {
+                issues.Add(CreateIssue(
+                    "manifest.invalid",
+                    $"Route '{route.Tag}' must declare a title.",
+                    loadResult.ManifestPath,
+                    manifest.Id,
+                    routeTag: route.Tag));
+            }
+
+            if (string.IsNullOrWhiteSpace(route.Kind)
+                || !SupportedRouteKinds.Contains(route.Kind, StringComparer.OrdinalIgnoreCase))
+            {
+                issues.Add(CreateIssue(
+                    "manifest.unsupported_route_kind",
+                    $"Route '{route.Tag}' uses unsupported kind '{route.Kind}'.",
+                    loadResult.ManifestPath,
+                    manifest.Id,
+                    routeTag: route.Tag));
             }
         }
 
@@ -233,6 +326,104 @@ public sealed class PluginManifestValidator
                     entry.ManifestPath,
                     entry.Id,
                     entry.ControlId));
+            }
+        }
+    }
+
+    private static void AddDuplicateCapabilityIdIssues(
+        IReadOnlyList<PluginManifestLoadResult> loadResults,
+        IReadOnlyDictionary<string, List<PluginManifestIssue>> issuesByPath)
+    {
+        AddDuplicateDeclarationIssues(
+            loadResults,
+            issuesByPath,
+            result => result.Manifest!.Capabilities.Select(capability => capability.Id),
+            "manifest.duplicate_capability_id",
+            duplicateId => $"Duplicate capability id '{duplicateId}' was declared by more than one manifest.");
+    }
+
+    private static void AddDuplicateDeviceIdIssues(
+        IReadOnlyList<PluginManifestLoadResult> loadResults,
+        IReadOnlyDictionary<string, List<PluginManifestIssue>> issuesByPath)
+    {
+        AddDuplicateDeclarationIssues(
+            loadResults,
+            issuesByPath,
+            result => result.Manifest!.Devices.Select(device => device.Id),
+            "manifest.duplicate_device_id",
+            duplicateId => $"Duplicate device id '{duplicateId}' was declared by more than one manifest.");
+    }
+
+    private static void AddDuplicateSensorIdIssues(
+        IReadOnlyList<PluginManifestLoadResult> loadResults,
+        IReadOnlyDictionary<string, List<PluginManifestIssue>> issuesByPath)
+    {
+        AddDuplicateDeclarationIssues(
+            loadResults,
+            issuesByPath,
+            result => result.Manifest!.Sensors.Select(sensor => sensor.Id),
+            "manifest.duplicate_sensor_id",
+            duplicateId => $"Duplicate sensor id '{duplicateId}' was declared by more than one manifest.");
+    }
+
+    private static void AddDuplicateRouteTagIssues(
+        IReadOnlyList<PluginManifestLoadResult> loadResults,
+        IReadOnlyDictionary<string, List<PluginManifestIssue>> issuesByPath)
+    {
+        var routeGroups = loadResults
+            .Where(result => result.Manifest is not null)
+            .SelectMany(result => result.Manifest!.Routes.Select(route => new
+            {
+                result.ManifestPath,
+                result.Manifest.Id,
+                RouteTag = route.Tag
+            }))
+            .Where(entry => !string.IsNullOrWhiteSpace(entry.RouteTag))
+            .GroupBy(entry => entry.RouteTag, StringComparer.OrdinalIgnoreCase)
+            .Where(group => group.Count() > 1);
+
+        foreach (var group in routeGroups)
+        {
+            foreach (var entry in group)
+            {
+                issuesByPath[entry.ManifestPath].Add(CreateIssue(
+                    "manifest.duplicate_route_tag",
+                    $"Duplicate route tag '{entry.RouteTag}' was declared by more than one manifest.",
+                    entry.ManifestPath,
+                    entry.Id,
+                    routeTag: entry.RouteTag));
+            }
+        }
+    }
+
+    private static void AddDuplicateDeclarationIssues(
+        IReadOnlyList<PluginManifestLoadResult> loadResults,
+        IReadOnlyDictionary<string, List<PluginManifestIssue>> issuesByPath,
+        Func<PluginManifestLoadResult, IEnumerable<string>> selector,
+        string code,
+        Func<string, string> messageFactory)
+    {
+        var duplicateGroups = loadResults
+            .Where(result => result.Manifest is not null)
+            .SelectMany(result => selector(result).Select(id => new
+            {
+                result.ManifestPath,
+                PluginId = result.Manifest!.Id,
+                DuplicateId = id
+            }))
+            .Where(entry => !string.IsNullOrWhiteSpace(entry.DuplicateId))
+            .GroupBy(entry => entry.DuplicateId, StringComparer.OrdinalIgnoreCase)
+            .Where(group => group.Count() > 1);
+
+        foreach (var group in duplicateGroups)
+        {
+            foreach (var entry in group)
+            {
+                issuesByPath[entry.ManifestPath].Add(CreateIssue(
+                    code,
+                    messageFactory(entry.DuplicateId),
+                    entry.ManifestPath,
+                    entry.PluginId));
             }
         }
     }

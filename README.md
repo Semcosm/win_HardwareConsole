@@ -75,7 +75,8 @@ Plugin manifest flow:
 
 ```text
 plugins/*/plugin.json
-  -> PluginManifestLoader
+  -> IPluginManifestRootProvider
+    -> PluginManifestLoader
     -> PluginManifestValidator
       -> PluginManifestCatalog
         -> manifest-backed plugin registry
@@ -185,8 +186,8 @@ Shows manifest-backed mock installed plugins with:
 Current mock plugins:
 
 - `Windows Power Plugin`
-- `NVIDIA NVAPI Plugin`
-- `Mechrevo GM6PX0X Platform Plugin`
+- `Mock Platform Plugin`
+- `Mechrevo GM6PX0X Mock Plugin`
 
 The current flow is:
 
@@ -198,6 +199,13 @@ plugin.json
         -> PluginsViewModel
           -> PluginsPage
 ```
+
+Current manifest-loading notes:
+
+- `DevelopmentPluginManifestRootProvider` currently resolves the repo-local `plugins/` root for development runs.
+- `PluginManifestValidator` now validates duplicate plugin/device/sensor/control/capability ids, duplicate route tags, unsupported route kinds, unknown device references, and unknown device capability references.
+- `PluginManifestCatalog` now exposes `Reload()` so registry and diagnostics refresh flows can share one manifest reload entry point later.
+- `ManifestBackedPluginRegistry` now derives plugin state from validation results instead of hard-coded plugin ids, and keeps invalid manifests visible in the plugin inventory with `Failed/Blocked/Unsupported` states.
 
 Dashboard now follows a similar mapping pattern:
 

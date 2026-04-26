@@ -32,6 +32,13 @@ public sealed class PluginManifestCatalog
             .ToArray();
     }
 
+    public IReadOnlyList<PluginManifestValidationResult> Reload()
+    {
+        var loadResults = _loader.LoadManifests();
+        _validationResults = _validator.Validate(loadResults);
+        return _validationResults;
+    }
+
     private void EnsureLoaded()
     {
         if (_validationResults is not null)
@@ -39,7 +46,6 @@ public sealed class PluginManifestCatalog
             return;
         }
 
-        var loadResults = _loader.LoadManifests();
-        _validationResults = _validator.Validate(loadResults);
+        Reload();
     }
 }
