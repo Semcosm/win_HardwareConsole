@@ -35,8 +35,14 @@ namespace Semcosm.HardwareConsole.App
             services.AddSingleton<IHardwareInventoryService, MockHardwareInventoryService>();
             services.AddSingleton<IPluginRegistry, MockPluginRegistry>();
             services.AddSingleton<IProfileRuntimeService, MockProfileRuntimeService>();
+            services.AddSingleton<IPolicyValidator<PowerPolicyDescriptor, PowerPolicyValidationResult>, MockPowerPolicyValidator>();
+            services.AddSingleton<IPolicyValidator<SchedulerPolicyDescriptor, SchedulerPolicyValidationResult>, MockSchedulerPolicyValidator>();
             services.AddSingleton<IPolicyValidator<ThermalPolicyDescriptor, ThermalPolicyValidationResult>, MockThermalPolicyValidator>();
-            services.AddSingleton<IPolicyRuntimeService, MockPolicyRuntimeService>();
+            services.AddSingleton<MockPolicyRuntimeService>();
+            services.AddSingleton<IFanPolicyRuntimeService>(serviceProvider => serviceProvider.GetRequiredService<MockPolicyRuntimeService>());
+            services.AddSingleton<IPowerPolicyRuntimeService>(serviceProvider => serviceProvider.GetRequiredService<MockPolicyRuntimeService>());
+            services.AddSingleton<ISchedulerPolicyRuntimeService>(serviceProvider => serviceProvider.GetRequiredService<MockPolicyRuntimeService>());
+            services.AddSingleton<IThermalPolicyRuntimeService>(serviceProvider => serviceProvider.GetRequiredService<MockPolicyRuntimeService>());
             services.AddSingleton<ISensorSnapshotProvider, MockSensorSnapshotProvider>();
             services.AddSingleton<PluginDiagnosticsReporter>();
             services.AddSingleton<INavigationRouteProvider, BuiltInNavigationRouteProvider>();

@@ -14,13 +14,13 @@ public sealed class ThermalViewModel : INotifyPropertyChanged
     private readonly IDiagnosticsSink _diagnosticsSink;
     private readonly ThermalPolicyPresentationMapper _presentationMapper;
     private readonly Dictionary<string, ThermalPolicyDescriptor> _policiesById;
-    private readonly IPolicyRuntimeService _policyRuntimeService;
+    private readonly IThermalPolicyRuntimeService _policyRuntimeService;
     private ThermalPolicyPreviewModel _preview = ThermalPolicyPreviewModel.CreateEmpty();
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public ThermalViewModel(
-        IPolicyRuntimeService policyRuntimeService,
+        IThermalPolicyRuntimeService policyRuntimeService,
         ThermalPolicyPresentationMapper presentationMapper,
         IDiagnosticsSink diagnosticsSink)
     {

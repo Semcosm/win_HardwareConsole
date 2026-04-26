@@ -14,13 +14,13 @@ public sealed class SchedulerViewModel : INotifyPropertyChanged
     private readonly IDiagnosticsSink _diagnosticsSink;
     private readonly IReadOnlyDictionary<string, SchedulerPolicyDescriptor> _policiesById;
     private readonly SchedulerPolicyPresentationMapper _presentationMapper;
-    private readonly IPolicyRuntimeService _policyRuntimeService;
+    private readonly ISchedulerPolicyRuntimeService _policyRuntimeService;
     private SchedulerPolicyPreviewModel _preview = SchedulerPolicyPreviewModel.CreateEmpty();
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public SchedulerViewModel(
-        IPolicyRuntimeService policyRuntimeService,
+        ISchedulerPolicyRuntimeService policyRuntimeService,
         SchedulerPolicyPresentationMapper presentationMapper,
         IDiagnosticsSink diagnosticsSink)
     {

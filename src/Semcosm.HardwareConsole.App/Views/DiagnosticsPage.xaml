@@ -52,6 +52,38 @@
                     Description="Historical diagnostic records across the current session."
                     TitleFontSize="22" />
 
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="220" />
+                        <ColumnDefinition Width="220" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <ComboBox
+                        Grid.Column="0"
+                        Header="Severity"
+                        ItemsSource="{x:Bind ViewModel.SeverityFilters, Mode=OneWay}"
+                        DisplayMemberPath="DisplayName"
+                        SelectedValuePath="Id"
+                        SelectedValue="{x:Bind ViewModel.SelectedSeverityFilterId, Mode=TwoWay}" />
+
+                    <ComboBox
+                        Grid.Column="1"
+                        Header="Source"
+                        ItemsSource="{x:Bind ViewModel.SourceFilters, Mode=OneWay}"
+                        DisplayMemberPath="DisplayName"
+                        SelectedValuePath="Id"
+                        SelectedValue="{x:Bind ViewModel.SelectedSourceFilterId, Mode=TwoWay}" />
+
+                    <Button
+                        Grid.Column="2"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Click="ClearSessionLogButton_Click"
+                        Content="Clear Session Log"
+                        IsEnabled="{x:Bind ViewModel.CanClear, Mode=OneWay}" />
+                </Grid>
+
                 <ListView
                     ItemsSource="{x:Bind ViewModel.DiagnosticLog, Mode=OneWay}"
                     SelectionMode="None">

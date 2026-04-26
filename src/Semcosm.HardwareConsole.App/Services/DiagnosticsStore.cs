@@ -48,4 +48,14 @@ public sealed class DiagnosticsStore : IDiagnosticsSink, IDiagnosticsProvider
 
         RecordsChanged?.Invoke(this, EventArgs.Empty);
     }
+
+    public void Clear()
+    {
+        lock (_syncRoot)
+        {
+            _records.Clear();
+        }
+
+        RecordsChanged?.Invoke(this, EventArgs.Empty);
+    }
 }

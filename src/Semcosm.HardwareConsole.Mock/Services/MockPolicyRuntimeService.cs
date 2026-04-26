@@ -5,13 +5,23 @@ using Semcosm.HardwareConsole.Abstractions;
 
 namespace Semcosm.HardwareConsole.Mock.Services;
 
-public sealed class MockPolicyRuntimeService : IPolicyRuntimeService
+public sealed class MockPolicyRuntimeService :
+    IFanPolicyRuntimeService,
+    IPowerPolicyRuntimeService,
+    ISchedulerPolicyRuntimeService,
+    IThermalPolicyRuntimeService
 {
+    private readonly IPolicyValidator<PowerPolicyDescriptor, PowerPolicyValidationResult> _powerPolicyValidator;
+    private readonly IPolicyValidator<SchedulerPolicyDescriptor, SchedulerPolicyValidationResult> _schedulerPolicyValidator;
     private readonly IPolicyValidator<ThermalPolicyDescriptor, ThermalPolicyValidationResult> _thermalPolicyValidator;
 
     public MockPolicyRuntimeService(
+        IPolicyValidator<PowerPolicyDescriptor, PowerPolicyValidationResult> powerPolicyValidator,
+        IPolicyValidator<SchedulerPolicyDescriptor, SchedulerPolicyValidationResult> schedulerPolicyValidator,
         IPolicyValidator<ThermalPolicyDescriptor, ThermalPolicyValidationResult> thermalPolicyValidator)
     {
+        _powerPolicyValidator = powerPolicyValidator;
+        _schedulerPolicyValidator = schedulerPolicyValidator;
         _thermalPolicyValidator = thermalPolicyValidator;
     }
 
@@ -106,73 +116,19 @@ public sealed class MockPolicyRuntimeService : IPolicyRuntimeService
 
     public PowerPolicyPreview PreviewPowerPolicy(PowerPolicyDescriptor policy)
     {
-        if (policy.Actions.Count == 0)
+        var validationResult = _powerPolicyValidator.Validate(policy);
+        if (!validationResult.IsValid)
         {
             return new PowerPolicyPreview(
                 false,
                 policy.Id,
                 policy,
-                PolicyPreviewFailureCode.InvalidPolicy,
-                Array.Empty<string>(),
-                Array.Empty<string>(),
-                new[]
-                {
-                    "Power policy contains no actions."
-                },
-                new[]
-                {
-                    "Mock runtime rejected the power policy because it has no AC/DC action set."
-                },
-                "Preview failed because the power policy has no actions.");
-        }
-
-        var missingSensors = policy.InputSensorIds
-            .Where(sensorId => !MockHardwareData.Sensors.Any(sensor => sensor.Id == sensorId))
-            .Distinct()
-            .ToArray();
-
-        if (missingSensors.Length > 0)
-        {
-            return new PowerPolicyPreview(
-                false,
-                policy.Id,
-                policy,
-                PolicyPreviewFailureCode.MissingRequiredSensor,
-                missingSensors,
-                Array.Empty<string>(),
-                missingSensors.Select(sensorId =>
-                    $"Required sensor '{sensorId}' is not available in the current mock inventory.")
-                    .ToArray(),
-                new[]
-                {
-                    "Mock runtime could not resolve one or more required power-policy sensors."
-                },
-                "Preview failed because one or more required sensors are missing.");
-        }
-
-        var unsupportedControls = policy.Actions
-            .Select(action => action.ControlId)
-            .Where(controlId => !MockHardwareData.Controls.Any(control => control.Id == controlId))
-            .Distinct()
-            .ToArray();
-
-        if (unsupportedControls.Length > 0)
-        {
-            return new PowerPolicyPreview(
-                false,
-                policy.Id,
-                policy,
-                PolicyPreviewFailureCode.UnsupportedControl,
-                policy.InputSensorIds,
-                unsupportedControls,
-                unsupportedControls.Select(controlId =>
-                    $"Output control '{controlId}' is not available in the current mock inventory.")
-                    .ToArray(),
-                new[]
-                {
-                    "Mock runtime could not resolve one or more power-policy target controls."
-                },
-                "Preview failed because one or more target controls are unsupported.");
+                validationResult.FailureCode,
+                validationResult.RequiredSensorIds,
+                validationResult.WouldSetControlIds,
+                validationResult.BlockedReasons,
+                validationResult.Diagnostics,
+                validationResult.Message);
         }
 
         return new PowerPolicyPreview(
@@ -180,8 +136,8 @@ public sealed class MockPolicyRuntimeService : IPolicyRuntimeService
             policy.Id,
             policy,
             PolicyPreviewFailureCode.None,
-            policy.InputSensorIds,
-            policy.Actions.Select(action => action.ControlId).Distinct().ToArray(),
+            validationResult.RequiredSensorIds,
+            validationResult.WouldSetControlIds,
             Array.Empty<string>(),
             new[]
             {
@@ -195,74 +151,19 @@ public sealed class MockPolicyRuntimeService : IPolicyRuntimeService
 
     public SchedulerPolicyPreview PreviewSchedulerPolicy(SchedulerPolicyDescriptor policy)
     {
-        if (policy.Rules.Count == 0)
+        var validationResult = _schedulerPolicyValidator.Validate(policy);
+        if (!validationResult.IsValid)
         {
             return new SchedulerPolicyPreview(
                 false,
                 policy.Id,
                 policy,
-                PolicyPreviewFailureCode.InvalidPolicy,
-                Array.Empty<string>(),
-                Array.Empty<string>(),
-                new[]
-                {
-                    "Scheduler policy contains no process rules."
-                },
-                new[]
-                {
-                    "Mock runtime rejected the scheduler policy because it has no rules."
-                },
-                "Preview failed because the scheduler policy has no rules.");
-        }
-
-        var missingSensors = policy.InputSensorIds
-            .Where(sensorId => !MockHardwareData.Sensors.Any(sensor => sensor.Id == sensorId))
-            .Distinct()
-            .ToArray();
-
-        if (missingSensors.Length > 0)
-        {
-            return new SchedulerPolicyPreview(
-                false,
-                policy.Id,
-                policy,
-                PolicyPreviewFailureCode.MissingRequiredSensor,
-                missingSensors,
-                Array.Empty<string>(),
-                missingSensors.Select(sensorId =>
-                    $"Required sensor '{sensorId}' is not available in the current mock inventory.")
-                    .ToArray(),
-                new[]
-                {
-                    "Mock runtime could not resolve one or more required scheduler-policy sensors."
-                },
-                "Preview failed because one or more required sensors are missing.");
-        }
-
-        var unsupportedControls = policy.Rules
-            .SelectMany(rule => rule.Actions)
-            .Select(action => action.ControlId)
-            .Where(controlId => !MockHardwareData.Controls.Any(control => control.Id == controlId))
-            .Distinct()
-            .ToArray();
-
-        if (unsupportedControls.Length > 0)
-        {
-            return new SchedulerPolicyPreview(
-                false,
-                policy.Id,
-                policy,
-                PolicyPreviewFailureCode.UnsupportedControl,
-                policy.InputSensorIds,
-                unsupportedControls,
-                unsupportedControls.Select(controlId =>
-                    $"Scheduler action control '{controlId}' is not available in the current mock inventory.")
-                    .ToArray(),
-                new[]
-                {
-                    "Mock runtime could not resolve one or more scheduler-policy target controls."
-                },
-                "Preview failed because one or more scheduler controls are unsupported.");
+                validationResult.FailureCode,
+                validationResult.RequiredSensorIds,
+                validationResult.WouldSetControlIds,
+                validationResult.BlockedReasons,
+                validationResult.Diagnostics,
+                validationResult.Message);
         }
 
         return new SchedulerPolicyPreview(
@@ -270,8 +171,8 @@ public sealed class MockPolicyRuntimeService : IPolicyRuntimeService
             policy.Id,
             policy,
             PolicyPreviewFailureCode.None,
-            policy.InputSensorIds,
-            policy.Rules.SelectMany(rule => rule.Actions).Select(action => action.ControlId).Distinct().ToArray(),
+            validationResult.RequiredSensorIds,
+            validationResult.WouldSetControlIds,
             Array.Empty<string>(),
             new[]
             {

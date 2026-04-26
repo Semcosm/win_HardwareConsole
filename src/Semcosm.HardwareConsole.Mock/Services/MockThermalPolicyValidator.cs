@@ -35,12 +35,16 @@ public sealed class MockThermalPolicyValidator
                 .Select(message => new PolicyValidationIssue(
                     "thermal.policy.invalid_descriptor",
                     PolicyValidationSeverity.Error,
-                    message))
+                    message,
+                    policy.Id,
+                    string.Empty,
+                    string.Empty))
                 .ToArray();
 
             return new ThermalPolicyValidationResult(
                 false,
                 ThermalPolicyFailureCode.InvalidPolicy,
+                policy.Id,
                 requiredSensorIds,
                 wouldSetControlIds,
                 issues,
@@ -63,12 +67,16 @@ public sealed class MockThermalPolicyValidator
                 .Select(sensorId => new PolicyValidationIssue(
                     "thermal.policy.missing_sensor",
                     PolicyValidationSeverity.Error,
-                    $"Required sensor '{sensorId}' is not available in the current mock inventory."))
+                    $"Required sensor '{sensorId}' is not available in the current mock inventory.",
+                    policy.Id,
+                    string.Empty,
+                    sensorId))
                 .ToArray();
 
             return new ThermalPolicyValidationResult(
                 false,
                 ThermalPolicyFailureCode.MissingRequiredSensor,
+                policy.Id,
                 requiredSensorIds,
                 wouldSetControlIds,
                 issues,
@@ -91,12 +99,16 @@ public sealed class MockThermalPolicyValidator
                 .Select(controlId => new PolicyValidationIssue(
                     "thermal.policy.unsupported_control",
                     PolicyValidationSeverity.Error,
-                    $"Output control '{controlId}' is not available in the current mock inventory."))
+                    $"Output control '{controlId}' is not available in the current mock inventory.",
+                    policy.Id,
+                    controlId,
+                    string.Empty))
                 .ToArray();
 
             return new ThermalPolicyValidationResult(
                 false,
                 ThermalPolicyFailureCode.UnsupportedControl,
+                policy.Id,
                 requiredSensorIds,
                 wouldSetControlIds,
                 issues,
@@ -111,6 +123,7 @@ public sealed class MockThermalPolicyValidator
         return new ThermalPolicyValidationResult(
             true,
             ThermalPolicyFailureCode.None,
+            policy.Id,
             requiredSensorIds,
             wouldSetControlIds,
             [],

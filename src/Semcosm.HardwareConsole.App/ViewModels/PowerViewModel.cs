@@ -14,13 +14,13 @@ public sealed class PowerViewModel : INotifyPropertyChanged
     private readonly IDiagnosticsSink _diagnosticsSink;
     private readonly IReadOnlyDictionary<string, PowerPolicyDescriptor> _policiesById;
     private readonly PowerPolicyPresentationMapper _presentationMapper;
-    private readonly IPolicyRuntimeService _policyRuntimeService;
+    private readonly IPowerPolicyRuntimeService _policyRuntimeService;
     private PowerPolicyPreviewModel _preview = PowerPolicyPreviewModel.CreateEmpty();
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public PowerViewModel(
-        IPolicyRuntimeService policyRuntimeService,
+        IPowerPolicyRuntimeService policyRuntimeService,
         PowerPolicyPresentationMapper presentationMapper,
         IDiagnosticsSink diagnosticsSink)
     {

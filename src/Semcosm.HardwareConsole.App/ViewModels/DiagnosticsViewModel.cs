@@ -12,6 +12,7 @@ namespace Semcosm.HardwareConsole.App.ViewModels;
 
 public sealed class DiagnosticsViewModel : INotifyPropertyChanged, IDisposable
 {
+    private const string AllFilterId = "all";
     private static readonly DiagnosticHealthSurface[] HealthSurfaces =
     [
         new("Routes", DiagnosticSource.Routes, "No route diagnostics yet."),
@@ -26,6 +27,8 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged, IDisposable
     private readonly DispatcherQueue? _dispatcherQueue;
     private readonly IDiagnosticsProvider _diagnosticsProvider;
     private bool _disposed;
+    private string _selectedSeverityFilterId = AllFilterId;
+    private string _selectedSourceFilterId = AllFilterId;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -37,6 +40,8 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged, IDisposable
 
         SystemHealth = new ObservableCollection<DiagnosticCardModel>();
         DiagnosticLog = new ObservableCollection<DiagnosticRecordModel>();
+        SeverityFilters = new ObservableCollection<SelectionOptionModel>(BuildSeverityFilters());
+        SourceFilters = new ObservableCollection<SelectionOptionModel>(BuildSourceFilters());
 
         Refresh();
     }
@@ -44,6 +49,36 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged, IDisposable
     public ObservableCollection<DiagnosticCardModel> SystemHealth { get; }
 
     public ObservableCollection<DiagnosticRecordModel> DiagnosticLog { get; }
+
+    public ObservableCollection<SelectionOptionModel> SeverityFilters { get; }
+
+    public ObservableCollection<SelectionOptionModel> SourceFilters { get; }
+
+    public string SelectedSeverityFilterId
+    {
+        get => _selectedSeverityFilterId;
+        set
+        {
+            if (SetProperty(ref _selectedSeverityFilterId, value))
+            {
+                Refresh();
+            }
+        }
+    }
+
+    public string SelectedSourceFilterId
+    {
+        get => _selectedSourceFilterId;
+        set
+        {
+            if (SetProperty(ref _selectedSourceFilterId, value))
+            {
+                Refresh();
+            }
+        }
+    }
+
+    public bool CanClear => _diagnosticsProvider.GetRecords().Count > 0;
 
     public void Dispose()
     {
@@ -91,6 +126,7 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged, IDisposable
         RebuildDiagnosticLog(records);
         OnPropertyChanged(nameof(SystemHealth));
         OnPropertyChanged(nameof(DiagnosticLog));
+        OnPropertyChanged(nameof(CanClear));
     }
 
     private void RebuildSystemHealth(
@@ -116,7 +152,7 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged, IDisposable
     {
         DiagnosticLog.Clear();
 
-        foreach (var record in records)
+        foreach (var record in records.Where(MatchesSelectedFilters))
         {
             DiagnosticLog.Add(new DiagnosticRecordModel
             {
@@ -159,6 +195,70 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged, IDisposable
             Severity = record.Severity,
             SeverityText = GetSeverityText(record.Severity)
         };
+    }
+
+    public void ClearDiagnostics()
+    {
+        _diagnosticsProvider.Clear();
+    }
+
+    private bool MatchesSelectedFilters(DiagnosticRecord record)
+    {
+        return MatchesSeverityFilter(record)
+            && MatchesSourceFilter(record);
+    }
+
+    private bool MatchesSeverityFilter(DiagnosticRecord record)
+    {
+        if (string.Equals(SelectedSeverityFilterId, AllFilterId, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return Enum.TryParse<DiagnosticSeverity>(SelectedSeverityFilterId, ignoreCase: true, out var severity)
+            && record.Severity == severity;
+    }
+
+    private bool MatchesSourceFilter(DiagnosticRecord record)
+    {
+        if (string.Equals(SelectedSourceFilterId, AllFilterId, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return Enum.TryParse<DiagnosticSource>(SelectedSourceFilterId, ignoreCase: true, out var source)
+            && record.Source == source;
+    }
+
+    private static IReadOnlyList<SelectionOptionModel> BuildSeverityFilters()
+    {
+        return new[]
+        {
+            new SelectionOptionModel { Id = AllFilterId, DisplayName = "All Severities" },
+            new SelectionOptionModel { Id = DiagnosticSeverity.Critical.ToString(), DisplayName = "Critical" },
+            new SelectionOptionModel { Id = DiagnosticSeverity.Error.ToString(), DisplayName = "Error" },
+            new SelectionOptionModel { Id = DiagnosticSeverity.Warning.ToString(), DisplayName = "Warning" },
+            new SelectionOptionModel { Id = DiagnosticSeverity.Info.ToString(), DisplayName = "Info" }
+        };
+    }
+
+    private static IReadOnlyList<SelectionOptionModel> BuildSourceFilters()
+    {
+        var options = new List<SelectionOptionModel>
+        {
+            new() { Id = AllFilterId, DisplayName = "All Sources" }
+        };
+
+        foreach (var source in Enum.GetValues<DiagnosticSource>())
+        {
+            options.Add(new SelectionOptionModel
+            {
+                Id = source.ToString(),
+                DisplayName = source.ToString()
+            });
+        }
+
+        return options;
     }
 
     private DiagnosticCardModel BuildPluginCard(IReadOnlyList<DiagnosticRecord> records)
@@ -232,6 +332,18 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged, IDisposable
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    private bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value))
+        {
+            return false;
+        }
+
+        field = value;
+        OnPropertyChanged(propertyName);
+        return true;
     }
 
     private sealed record DiagnosticHealthSurface(

@@ -2,22 +2,12 @@ using System.Collections.Generic;
 
 namespace Semcosm.HardwareConsole.Abstractions;
 
-public sealed record ThermalPolicyValidationResult(
+public abstract record PolicyValidationResult(
     bool IsValid,
-    ThermalPolicyFailureCode FailureCode,
     string RelatedPolicyId,
     IReadOnlyList<string> RequiredSensorIds,
     IReadOnlyList<string> WouldSetControlIds,
     IReadOnlyList<PolicyValidationIssue> Issues,
     IReadOnlyList<string> BlockedReasons,
     IReadOnlyList<string> Diagnostics,
-    string Message)
-    : PolicyValidationResult(
-        IsValid,
-        RelatedPolicyId,
-        RequiredSensorIds,
-        WouldSetControlIds,
-        Issues,
-        BlockedReasons,
-        Diagnostics,
-        Message);
+    string Message);

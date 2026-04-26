@@ -89,6 +89,15 @@ runtime surface
           -> DiagnosticsPage
 ```
 
+Policy runtime flow:
+
+```text
+descriptor-driven page
+  -> IFan/IPower/IScheduler/IThermalPolicyRuntimeService
+    -> policy validator
+      -> mock preview result
+```
+
 Current route model:
 
 - `BuiltInNavigationRoute` keeps `Type PageType` and a typed `Symbol` icon for app-owned WinUI pages
@@ -209,7 +218,7 @@ Backed by:
 - `src/Semcosm.HardwareConsole.Abstractions/FanCurvePoint.cs`
 - `src/Semcosm.HardwareConsole.Abstractions/FanCurvePolicyDescriptor.cs`
 - `src/Semcosm.HardwareConsole.Abstractions/PolicyRuntimePreview.cs`
-- `src/Semcosm.HardwareConsole.Abstractions/IPolicyRuntimeService.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/IFanPolicyRuntimeService.cs`
 - `src/Semcosm.HardwareConsole.Mock/Services/MockPolicyRuntimeService.cs`
 - `src/Semcosm.HardwareConsole.App/Services/FanPolicyPresentationMapper.cs`
 - `src/Semcosm.HardwareConsole.App/ViewModels/FansViewModel.cs`
@@ -232,8 +241,10 @@ Backed by:
 - `src/Semcosm.HardwareConsole.Abstractions/PowerPolicyActionDescriptor.cs`
 - `src/Semcosm.HardwareConsole.Abstractions/PowerPolicyDescriptor.cs`
 - `src/Semcosm.HardwareConsole.Abstractions/PowerPolicyPreview.cs`
-- `src/Semcosm.HardwareConsole.Abstractions/IPolicyRuntimeService.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/IPowerPolicyRuntimeService.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/PowerPolicyValidationResult.cs`
 - `src/Semcosm.HardwareConsole.Mock/Services/MockPolicyRuntimeService.cs`
+- `src/Semcosm.HardwareConsole.Mock/Services/MockPowerPolicyValidator.cs`
 - `src/Semcosm.HardwareConsole.App/Services/PowerPolicyPresentationMapper.cs`
 - `src/Semcosm.HardwareConsole.App/ViewModels/PowerViewModel.cs`
 - `src/Semcosm.HardwareConsole.App/Views/PowerPage.xaml`
@@ -247,6 +258,7 @@ Shows:
 - preview-only action rows for power plan and budget changes
 
 `Power` currently previews mock policy behavior only. It does not write real Windows power-plan or hardware power-limit state.
+Power preview now passes through a dedicated mock validation layer before runtime preview is produced, so invalid AC/DC action sets, missing sensors, unsupported controls, and confirmation gaps surface as structured failure results instead of inline runtime checks.
 
 ### Scheduler
 
@@ -256,8 +268,10 @@ Backed by:
 - `src/Semcosm.HardwareConsole.Abstractions/SchedulerRuleDescriptor.cs`
 - `src/Semcosm.HardwareConsole.Abstractions/SchedulerPolicyDescriptor.cs`
 - `src/Semcosm.HardwareConsole.Abstractions/SchedulerPolicyPreview.cs`
-- `src/Semcosm.HardwareConsole.Abstractions/IPolicyRuntimeService.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/ISchedulerPolicyRuntimeService.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/SchedulerPolicyValidationResult.cs`
 - `src/Semcosm.HardwareConsole.Mock/Services/MockPolicyRuntimeService.cs`
+- `src/Semcosm.HardwareConsole.Mock/Services/MockSchedulerPolicyValidator.cs`
 - `src/Semcosm.HardwareConsole.App/Services/SchedulerPolicyPresentationMapper.cs`
 - `src/Semcosm.HardwareConsole.App/ViewModels/SchedulerViewModel.cs`
 - `src/Semcosm.HardwareConsole.App/Views/SchedulerPage.xaml`
@@ -271,6 +285,7 @@ Shows:
 - preview-only rule rows for process match and scheduler intent
 
 `Scheduler` currently previews mock policy behavior only. It does not write real Windows scheduler or process-policy state.
+Scheduler preview now passes through a dedicated mock validation layer before runtime preview is produced, so invalid rule sets, missing sensors, unsupported controls, and confirmation gaps surface as structured failure results instead of inline runtime checks.
 
 ### Thermal
 
@@ -280,7 +295,8 @@ Backed by:
 - `src/Semcosm.HardwareConsole.Abstractions/ThermalPolicyDescriptor.cs`
 - `src/Semcosm.HardwareConsole.Abstractions/ThermalPolicyPreview.cs`
 - `src/Semcosm.HardwareConsole.Abstractions/ThermalPolicyFailureCode.cs`
-- `src/Semcosm.HardwareConsole.Abstractions/IPolicyRuntimeService.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/IThermalPolicyRuntimeService.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/ThermalPolicyValidationResult.cs`
 - `src/Semcosm.HardwareConsole.Mock/Services/MockPolicyRuntimeService.cs`
 - `src/Semcosm.HardwareConsole.App/Services/ThermalPolicyPresentationMapper.cs`
 - `src/Semcosm.HardwareConsole.App/ViewModels/ThermalViewModel.cs`
@@ -343,11 +359,12 @@ Backed by:
 
 Shows:
 
-- system-health cards for `Routes`, `Plugins`, `Profiles`, `Fans`, and `Thermal`
+- system-health cards for `Routes`, `Plugins`, `Profiles`, `Fans`, `Power`, `Scheduler`, and `Thermal`
 - historical diagnostic log rows with severity, source, code, message, related id, and timestamp
 - route diagnostics for duplicate tags, unresolved routes, and navigation failures
 - plugin-state diagnostics for mocked, failed, blocked, or unsupported providers
 - profile apply diagnostics, fan preview diagnostics, and thermal validation / preview diagnostics in one shared surface
+- severity/source filters and `Clear Session Log` for the current in-memory session store
 
 Diagnostics is currently session-scoped and mock-driven. It does not collect hardware telemetry logs or real crash dumps.
 The current diagnostics taxonomy already reserves additional sources such as `Devices`, `Power`, `Scheduler`, `Service`, `PolicyValidation`, and `HardwareAccess`, even though the first active health cards still focus on routes, plugins, profiles, fans, and thermal.
@@ -360,9 +377,10 @@ That keeps the UI stable when the backend evolves from mock data to real hardwar
 
 Profiles now follow the same separation: inventory still describes what profiles exist, `IProfileRuntimeService` owns which profile is active and what a profile would do, and `ProfilePresentationMapper` maps profile/runtime contracts into the UI models used by the page.
 
-Thermal policies now follow the same pattern as fan policies: the page binds descriptor-driven mock chains from `IPolicyRuntimeService`, while preview returns structured thermal-policy diagnostics instead of raw summary strings.
+Thermal policies now follow the same pattern as fan policies: the page binds descriptor-driven mock chains from `IThermalPolicyRuntimeService`, while preview returns structured thermal-policy diagnostics instead of raw summary strings.
 
-Power and scheduler policies now follow the same descriptor-driven pattern as fans and thermal: the pages bind mock policy descriptors from `IPolicyRuntimeService`, while preview returns structured would-set controls, required sensors, blocked reasons and diagnostics without performing real writes.
+Power and scheduler policies now follow the same descriptor-driven pattern as fans and thermal: the pages bind mock policy descriptors from `IPowerPolicyRuntimeService` and `ISchedulerPolicyRuntimeService`, while preview returns structured would-set controls, required sensors, blocked reasons and diagnostics without performing real writes.
+Validation for thermal, power, and scheduler policies now flows through shared abstraction-layer validator contracts before mock preview is produced.
 
 Diagnostics now follows the same pattern: runtime surfaces report `DiagnosticRecord` entries through `IDiagnosticsSink`, while the page only renders the current aggregate state and session log through `IDiagnosticsProvider`.
 The diagnostics store now guards its in-memory record list with locking, while `DiagnosticsViewModel` marshals refresh work back onto the UI dispatcher before rebuilding observable collections.
@@ -434,7 +452,7 @@ That is intentional while the project is still using WinUI, XAML, DI, and future
 
 - route registry, navigation failures, plugin states, profile apply results, fan previews, power previews, scheduler previews, and thermal previews all emit `DiagnosticRecord`
 - `IPluginRegistry` now exposes `PluginsChanged`, and the current reporter republishes plugin-state diagnostics when registry state changes
-- the page shows both latest-per-surface health and the historical session log
+- the page shows both latest-per-surface health and the historical session log, with basic severity/source filters and clear-session support
 - `DiagnosticsViewModel` detaches from the singleton diagnostics provider when the page unloads, so transient view models are not held alive by event subscriptions
 - diagnostics severity now reserves `Critical` for future hardware-fault and safety-stop scenarios
 - diagnostics are mock/runtime feedback only; there is no persistent log store yet

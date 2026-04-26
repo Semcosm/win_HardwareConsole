@@ -2,9 +2,9 @@ using System.Collections.Generic;
 
 namespace Semcosm.HardwareConsole.Abstractions;
 
-public sealed record ThermalPolicyValidationResult(
+public sealed record SchedulerPolicyValidationResult(
     bool IsValid,
-    ThermalPolicyFailureCode FailureCode,
+    PolicyPreviewFailureCode FailureCode,
     string RelatedPolicyId,
     IReadOnlyList<string> RequiredSensorIds,
     IReadOnlyList<string> WouldSetControlIds,

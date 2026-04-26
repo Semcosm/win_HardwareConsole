@@ -23,7 +23,7 @@ public sealed class FansViewModel : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public FansViewModel(
-        IPolicyRuntimeService policyRuntimeService,
+        IFanPolicyRuntimeService policyRuntimeService,
         FanPolicyPresentationMapper presentationMapper,
         IDiagnosticsSink diagnosticsSink)
     {
@@ -52,7 +52,7 @@ public sealed class FansViewModel : INotifyPropertyChanged
         }
     }
 
-    private readonly IPolicyRuntimeService _policyRuntimeService;
+    private readonly IFanPolicyRuntimeService _policyRuntimeService;
 
     public ObservableCollection<FanPolicyEditorModel> Policies { get; }
 

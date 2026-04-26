@@ -16,6 +16,11 @@ public sealed partial class DiagnosticsPage : Page
         Unloaded += DiagnosticsPage_Unloaded;
     }
 
+    private void ClearSessionLogButton_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.ClearDiagnostics();
+    }
+
     private void DiagnosticsPage_Unloaded(object sender, RoutedEventArgs e)
     {
         if (ViewModel is IDisposable disposable)

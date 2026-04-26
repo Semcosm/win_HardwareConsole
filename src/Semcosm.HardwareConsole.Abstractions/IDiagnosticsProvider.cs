@@ -9,4 +9,5 @@ public interface IDiagnosticsProvider
 
     IReadOnlyList<DiagnosticRecord> GetRecords();
     DiagnosticRecord? GetLatest(DiagnosticSource source);
+    void Clear();
 }
