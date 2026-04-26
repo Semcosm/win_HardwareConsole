@@ -18,6 +18,8 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged, IDisposable
         new("Plugins", DiagnosticSource.Plugins, "No plugin diagnostics yet."),
         new("Profiles", DiagnosticSource.Profiles, "No profile apply diagnostics yet."),
         new("Fans", DiagnosticSource.Fans, "No fan preview diagnostics yet."),
+        new("Power", DiagnosticSource.Power, "No power preview diagnostics yet."),
+        new("Scheduler", DiagnosticSource.Scheduler, "No scheduler preview diagnostics yet."),
         new("Thermal", DiagnosticSource.Thermal, "No thermal preview diagnostics yet.")
     ];
 

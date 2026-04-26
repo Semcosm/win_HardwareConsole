@@ -19,10 +19,12 @@ Current app goals:
 - `Diagnostics` now provides a unified system-health and diagnostic-log surface across routes, plugins, profiles, fan policy preview, and thermal validation.
 - `Devices` shows mock hardware inventory, capability ownership, sensors, controls and plugin source hints.
 - `Fans` now provides a mock fan policy editor with runtime preview, without writing real hardware.
+- `Power` now provides mock Windows power-plan and AC/DC budget preview surfaces without writing real hardware.
+- `Scheduler` now provides mock process-rule scheduler preview surfaces for EcoQoS, efficiency mode and boost behavior without writing real hardware.
 - `Thermal` now provides mock thermal policy-chain preview for staged temperature walls, without writing real hardware.
 - `Plugins` shows capability providers, risk level, matched devices, and extension metadata.
 - `Profiles` now drives a mock profile runtime with preview/apply flows and updates Dashboard active profile state without writing real hardware.
-- Other pages already exist as placeholders for the next phase: `Performance`, `Power`, `Scheduler`, `Settings`.
+- Other pages already exist as placeholders for the next phase: `Performance`, `Settings`.
 
 ## Current Stack
 
@@ -223,6 +225,53 @@ Shows:
 
 `Fans` currently previews mock policy behavior only. It does not write real fan controller state. The preview contract is now structured around required sensors, would-set controls, blocked reasons and diagnostics instead of relying on summary strings alone.
 
+### Power
+
+Backed by:
+
+- `src/Semcosm.HardwareConsole.Abstractions/PowerPolicyActionDescriptor.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/PowerPolicyDescriptor.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/PowerPolicyPreview.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/IPolicyRuntimeService.cs`
+- `src/Semcosm.HardwareConsole.Mock/Services/MockPolicyRuntimeService.cs`
+- `src/Semcosm.HardwareConsole.App/Services/PowerPolicyPresentationMapper.cs`
+- `src/Semcosm.HardwareConsole.App/ViewModels/PowerViewModel.cs`
+- `src/Semcosm.HardwareConsole.App/Views/PowerPage.xaml`
+
+Shows:
+
+- mock Windows power-plan behavior
+- AC/DC transition summaries
+- CPU PL1 / PL2 mock control targets
+- GPU power-limit mock control targets
+- preview-only action rows for power plan and budget changes
+
+`Power` currently previews mock policy behavior only. It does not write real Windows power-plan or hardware power-limit state.
+
+### Scheduler
+
+Backed by:
+
+- `src/Semcosm.HardwareConsole.Abstractions/SchedulerPolicyActionDescriptor.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/SchedulerRuleDescriptor.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/SchedulerPolicyDescriptor.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/SchedulerPolicyPreview.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/IPolicyRuntimeService.cs`
+- `src/Semcosm.HardwareConsole.Mock/Services/MockPolicyRuntimeService.cs`
+- `src/Semcosm.HardwareConsole.App/Services/SchedulerPolicyPresentationMapper.cs`
+- `src/Semcosm.HardwareConsole.App/ViewModels/SchedulerViewModel.cs`
+- `src/Semcosm.HardwareConsole.App/Views/SchedulerPage.xaml`
+
+Shows:
+
+- process-rule based mock scheduler policies
+- foreground boost behavior
+- background throttling behavior
+- EcoQoS and efficiency-mode mock targets
+- preview-only rule rows for process match and scheduler intent
+
+`Scheduler` currently previews mock policy behavior only. It does not write real Windows scheduler or process-policy state.
+
 ### Thermal
 
 Backed by:
@@ -313,6 +362,8 @@ Profiles now follow the same separation: inventory still describes what profiles
 
 Thermal policies now follow the same pattern as fan policies: the page binds descriptor-driven mock chains from `IPolicyRuntimeService`, while preview returns structured thermal-policy diagnostics instead of raw summary strings.
 
+Power and scheduler policies now follow the same descriptor-driven pattern as fans and thermal: the pages bind mock policy descriptors from `IPolicyRuntimeService`, while preview returns structured would-set controls, required sensors, blocked reasons and diagnostics without performing real writes.
+
 Diagnostics now follows the same pattern: runtime surfaces report `DiagnosticRecord` entries through `IDiagnosticsSink`, while the page only renders the current aggregate state and session log through `IDiagnosticsProvider`.
 The diagnostics store now guards its in-memory record list with locking, while `DiagnosticsViewModel` marshals refresh work back onto the UI dispatcher before rebuilding observable collections.
 
@@ -381,7 +432,7 @@ That is intentional while the project is still using WinUI, XAML, DI, and future
 
 `Diagnostics` currently uses an in-memory session store only.
 
-- route registry, navigation failures, plugin states, profile apply results, fan previews, and thermal previews all emit `DiagnosticRecord`
+- route registry, navigation failures, plugin states, profile apply results, fan previews, power previews, scheduler previews, and thermal previews all emit `DiagnosticRecord`
 - `IPluginRegistry` now exposes `PluginsChanged`, and the current reporter republishes plugin-state diagnostics when registry state changes
 - the page shows both latest-per-surface health and the historical session log
 - `DiagnosticsViewModel` detaches from the singleton diagnostics provider when the page unloads, so transient view models are not held alive by event subscriptions

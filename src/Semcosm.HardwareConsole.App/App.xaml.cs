@@ -46,14 +46,18 @@ namespace Semcosm.HardwareConsole.App
             services.AddSingleton<INavigationService, NavigationService>();
             services.AddSingleton<DevicePresentationMapper>();
             services.AddSingleton<FanPolicyPresentationMapper>();
+            services.AddSingleton<PowerPolicyPresentationMapper>();
             services.AddSingleton<ProfilePresentationMapper>();
+            services.AddSingleton<SchedulerPolicyPresentationMapper>();
             services.AddSingleton<ThermalPolicyPresentationMapper>();
             services.AddTransient<DashboardViewModel>();
             services.AddTransient<DevicesViewModel>();
             services.AddTransient<DiagnosticsViewModel>();
             services.AddTransient<FansViewModel>();
+            services.AddTransient<PowerViewModel>();
             services.AddTransient<ProfilesViewModel>();
             services.AddTransient<PluginsViewModel>();
+            services.AddTransient<SchedulerViewModel>();
             services.AddTransient<ThermalViewModel>();
             services.AddTransient<MainWindow>();
         }

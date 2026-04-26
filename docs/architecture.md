@@ -123,6 +123,15 @@ Current PR10 boundary:
 - fan policies reference the same sensor/control ids already exposed on `DevicesPage`
 - no real hardware write path is implemented yet
 
+Current PR13 boundary:
+
+- `PowerPage` renders mock Windows power policies from `IPolicyRuntimeService`
+- `PowerPolicyDescriptor` expresses AC/DC plan behavior and would-set CPU/GPU budget controls
+- `SchedulerPage` renders mock process-rule scheduler policies from `IPolicyRuntimeService`
+- `SchedulerPolicyDescriptor` expresses foreground/background scheduling strategies through process rules and control targets
+- both pages remain preview-only and do not write real Windows power or scheduler state
+- both pages emit diagnostics through the same shared diagnostics sink used by the rest of the shell
+
 Current PR11 boundary:
 
 - `ThermalPage` renders mock thermal policy chains from `IPolicyRuntimeService`
@@ -175,4 +184,4 @@ Current diagnostics convergence note:
 - fan, thermal, profile, route, and plugin surfaces still expose their own local result contracts to their pages
 - `DiagnosticRecord` is the shared cross-cutting shape for global health and historical feedback
 - the system-health card list is now configuration-driven instead of being hard-coded directly in the rebuild method
-- once power and scheduler pages exist, they should emit diagnostics through the same sink instead of inventing per-page global logging models
+- power and scheduler previews now also emit through the shared diagnostics sink instead of inventing per-page global logging models

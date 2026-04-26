@@ -6,6 +6,10 @@ public interface IPolicyRuntimeService
 {
     IReadOnlyList<FanCurvePolicyDescriptor> GetAvailableFanPolicies();
     PolicyRuntimePreview PreviewFanPolicy(FanCurvePolicyDescriptor policy);
+    IReadOnlyList<PowerPolicyDescriptor> GetAvailablePowerPolicies();
+    PowerPolicyPreview PreviewPowerPolicy(PowerPolicyDescriptor policy);
+    IReadOnlyList<SchedulerPolicyDescriptor> GetAvailableSchedulerPolicies();
+    SchedulerPolicyPreview PreviewSchedulerPolicy(SchedulerPolicyDescriptor policy);
     IReadOnlyList<ThermalPolicyDescriptor> GetAvailableThermalPolicies();
     ThermalPolicyPreview PreviewThermalPolicy(ThermalPolicyDescriptor policy);
 }

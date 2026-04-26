@@ -17,6 +17,10 @@ public sealed class MockPolicyRuntimeService : IPolicyRuntimeService
 
     public IReadOnlyList<FanCurvePolicyDescriptor> GetAvailableFanPolicies() => MockHardwareData.FanCurvePolicies;
 
+    public IReadOnlyList<PowerPolicyDescriptor> GetAvailablePowerPolicies() => MockHardwareData.PowerPolicies;
+
+    public IReadOnlyList<SchedulerPolicyDescriptor> GetAvailableSchedulerPolicies() => MockHardwareData.SchedulerPolicies;
+
     public IReadOnlyList<ThermalPolicyDescriptor> GetAvailableThermalPolicies() => MockHardwareData.ThermalPolicies;
 
     public PolicyRuntimePreview PreviewFanPolicy(FanCurvePolicyDescriptor policy)
@@ -98,6 +102,185 @@ public sealed class MockPolicyRuntimeService : IPolicyRuntimeService
                 "Preview only. No real hardware controller write is performed."
             },
             "Preview only. No real hardware controller write is performed.");
+    }
+
+    public PowerPolicyPreview PreviewPowerPolicy(PowerPolicyDescriptor policy)
+    {
+        if (policy.Actions.Count == 0)
+        {
+            return new PowerPolicyPreview(
+                false,
+                policy.Id,
+                policy,
+                PolicyPreviewFailureCode.InvalidPolicy,
+                Array.Empty<string>(),
+                Array.Empty<string>(),
+                new[]
+                {
+                    "Power policy contains no actions."
+                },
+                new[]
+                {
+                    "Mock runtime rejected the power policy because it has no AC/DC action set."
+                },
+                "Preview failed because the power policy has no actions.");
+        }
+
+        var missingSensors = policy.InputSensorIds
+            .Where(sensorId => !MockHardwareData.Sensors.Any(sensor => sensor.Id == sensorId))
+            .Distinct()
+            .ToArray();
+
+        if (missingSensors.Length > 0)
+        {
+            return new PowerPolicyPreview(
+                false,
+                policy.Id,
+                policy,
+                PolicyPreviewFailureCode.MissingRequiredSensor,
+                missingSensors,
+                Array.Empty<string>(),
+                missingSensors.Select(sensorId =>
+                    $"Required sensor '{sensorId}' is not available in the current mock inventory.")
+                    .ToArray(),
+                new[]
+                {
+                    "Mock runtime could not resolve one or more required power-policy sensors."
+                },
+                "Preview failed because one or more required sensors are missing.");
+        }
+
+        var unsupportedControls = policy.Actions
+            .Select(action => action.ControlId)
+            .Where(controlId => !MockHardwareData.Controls.Any(control => control.Id == controlId))
+            .Distinct()
+            .ToArray();
+
+        if (unsupportedControls.Length > 0)
+        {
+            return new PowerPolicyPreview(
+                false,
+                policy.Id,
+                policy,
+                PolicyPreviewFailureCode.UnsupportedControl,
+                policy.InputSensorIds,
+                unsupportedControls,
+                unsupportedControls.Select(controlId =>
+                    $"Output control '{controlId}' is not available in the current mock inventory.")
+                    .ToArray(),
+                new[]
+                {
+                    "Mock runtime could not resolve one or more power-policy target controls."
+                },
+                "Preview failed because one or more target controls are unsupported.");
+        }
+
+        return new PowerPolicyPreview(
+            true,
+            policy.Id,
+            policy,
+            PolicyPreviewFailureCode.None,
+            policy.InputSensorIds,
+            policy.Actions.Select(action => action.ControlId).Distinct().ToArray(),
+            Array.Empty<string>(),
+            new[]
+            {
+                $"Power plan: {policy.PowerPlanName}",
+                $"AC actions: {policy.Actions.Count(action => string.Equals(action.ConditionLabel, "AC", StringComparison.OrdinalIgnoreCase))}",
+                $"DC actions: {policy.Actions.Count(action => string.Equals(action.ConditionLabel, "DC", StringComparison.OrdinalIgnoreCase))}",
+                "Preview only. No real Windows power plan, PL1/PL2, or GPU limit write is performed."
+            },
+            "Preview only. No real Windows power plan, PL1/PL2, or GPU limit write is performed.");
+    }
+
+    public SchedulerPolicyPreview PreviewSchedulerPolicy(SchedulerPolicyDescriptor policy)
+    {
+        if (policy.Rules.Count == 0)
+        {
+            return new SchedulerPolicyPreview(
+                false,
+                policy.Id,
+                policy,
+                PolicyPreviewFailureCode.InvalidPolicy,
+                Array.Empty<string>(),
+                Array.Empty<string>(),
+                new[]
+                {
+                    "Scheduler policy contains no process rules."
+                },
+                new[]
+                {
+                    "Mock runtime rejected the scheduler policy because it has no rules."
+                },
+                "Preview failed because the scheduler policy has no rules.");
+        }
+
+        var missingSensors = policy.InputSensorIds
+            .Where(sensorId => !MockHardwareData.Sensors.Any(sensor => sensor.Id == sensorId))
+            .Distinct()
+            .ToArray();
+
+        if (missingSensors.Length > 0)
+        {
+            return new SchedulerPolicyPreview(
+                false,
+                policy.Id,
+                policy,
+                PolicyPreviewFailureCode.MissingRequiredSensor,
+                missingSensors,
+                Array.Empty<string>(),
+                missingSensors.Select(sensorId =>
+                    $"Required sensor '{sensorId}' is not available in the current mock inventory.")
+                    .ToArray(),
+                new[]
+                {
+                    "Mock runtime could not resolve one or more required scheduler-policy sensors."
+                },
+                "Preview failed because one or more required sensors are missing.");
+        }
+
+        var unsupportedControls = policy.Rules
+            .SelectMany(rule => rule.Actions)
+            .Select(action => action.ControlId)
+            .Where(controlId => !MockHardwareData.Controls.Any(control => control.Id == controlId))
+            .Distinct()
+            .ToArray();
+
+        if (unsupportedControls.Length > 0)
+        {
+            return new SchedulerPolicyPreview(
+                false,
+                policy.Id,
+                policy,
+                PolicyPreviewFailureCode.UnsupportedControl,
+                policy.InputSensorIds,
+                unsupportedControls,
+                unsupportedControls.Select(controlId =>
+                    $"Scheduler action control '{controlId}' is not available in the current mock inventory.")
+                    .ToArray(),
+                new[]
+                {
+                    "Mock runtime could not resolve one or more scheduler-policy target controls."
+                },
+                "Preview failed because one or more scheduler controls are unsupported.");
+        }
+
+        return new SchedulerPolicyPreview(
+            true,
+            policy.Id,
+            policy,
+            PolicyPreviewFailureCode.None,
+            policy.InputSensorIds,
+            policy.Rules.SelectMany(rule => rule.Actions).Select(action => action.ControlId).Distinct().ToArray(),
+            Array.Empty<string>(),
+            new[]
+            {
+                $"Rules: {policy.Rules.Count}",
+                $"Foreground strategy: {policy.ForegroundStrategy}",
+                $"Background strategy: {policy.BackgroundStrategy}",
+                "Preview only. No real scheduler, EcoQoS, or efficiency-mode write is performed."
+            },
+            "Preview only. No real scheduler, EcoQoS, or efficiency-mode write is performed.");
     }
 
     public ThermalPolicyPreview PreviewThermalPolicy(ThermalPolicyDescriptor policy)

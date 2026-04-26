@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="Semcosm.HardwareConsole.App.Controls.SchedulerPolicyCard"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Semcosm.HardwareConsole.App.Controls"
+    xmlns:local="using:Semcosm.HardwareConsole.App.Controls"
+    x:DataType="local:SchedulerPolicyCard"
+    x:Name="Root">
+
+    <Border
+        Padding="20"
+        CornerRadius="16"
+        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+
+        <StackPanel Spacing="16">
+            <Grid ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Spacing="8">
+                    <TextBlock
+                        Text="{x:Bind DisplayName, Mode=OneWay}"
+                        FontSize="22"
+                        FontWeight="SemiBold" />
+
+                    <TextBlock
+                        Text="{x:Bind Description, Mode=OneWay}"
+                        TextWrapping="Wrap"
+                        Opacity="0.76" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Spacing="10">
+                    <controls:RiskBadge RiskLevel="{x:Bind RiskLevel, Mode=OneWay}" />
+                    <controls:CapabilityChip Text="{x:Bind ScopeText, Mode=OneWay}" />
+                </StackPanel>
+            </Grid>
+
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <controls:CapabilityChip Text="{x:Bind RuleCountText, Mode=OneWay}" />
+                <controls:CapabilityChip Text="{x:Bind TriggerSummary, Mode=OneWay}" />
+            </StackPanel>
+
+            <TextBlock
+                Text="{x:Bind ForegroundStrategyText, Mode=OneWay}"
+                TextWrapping="Wrap"
+                Opacity="0.76" />
+
+            <TextBlock
+                Text="{x:Bind BackgroundStrategyText, Mode=OneWay}"
+                TextWrapping="Wrap"
+                Opacity="0.76" />
+
+            <TextBlock
+                Text="{x:Bind ControlSummary, Mode=OneWay}"
+                TextWrapping="Wrap"
+                Opacity="0.76" />
+
+            <Button
+                Content="Preview Scheduler Policy"
+                Click="PreviewButton_Click" />
+        </StackPanel>
+    </Border>
+</UserControl>
