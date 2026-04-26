@@ -301,6 +301,7 @@ Shows:
 - profile apply diagnostics, fan preview diagnostics, and thermal validation / preview diagnostics in one shared surface
 
 Diagnostics is currently session-scoped and mock-driven. It does not collect hardware telemetry logs or real crash dumps.
+The current diagnostics taxonomy already reserves additional sources such as `Devices`, `Power`, `Scheduler`, `Service`, `PolicyValidation`, and `HardwareAccess`, even though the first active health cards still focus on routes, plugins, profiles, fans, and thermal.
 
 ## Why This Shape
 
@@ -313,6 +314,7 @@ Profiles now follow the same separation: inventory still describes what profiles
 Thermal policies now follow the same pattern as fan policies: the page binds descriptor-driven mock chains from `IPolicyRuntimeService`, while preview returns structured thermal-policy diagnostics instead of raw summary strings.
 
 Diagnostics now follows the same pattern: runtime surfaces report `DiagnosticRecord` entries through `IDiagnosticsSink`, while the page only renders the current aggregate state and session log through `IDiagnosticsProvider`.
+The diagnostics store now guards its in-memory record list with locking, while `DiagnosticsViewModel` marshals refresh work back onto the UI dispatcher before rebuilding observable collections.
 
 ## Run
 
@@ -380,7 +382,10 @@ That is intentional while the project is still using WinUI, XAML, DI, and future
 `Diagnostics` currently uses an in-memory session store only.
 
 - route registry, navigation failures, plugin states, profile apply results, fan previews, and thermal previews all emit `DiagnosticRecord`
+- `IPluginRegistry` now exposes `PluginsChanged`, and the current reporter republishes plugin-state diagnostics when registry state changes
 - the page shows both latest-per-surface health and the historical session log
+- `DiagnosticsViewModel` detaches from the singleton diagnostics provider when the page unloads, so transient view models are not held alive by event subscriptions
+- diagnostics severity now reserves `Critical` for future hardware-fault and safety-stop scenarios
 - diagnostics are mock/runtime feedback only; there is no persistent log store yet
 
 ## Next Suggested Steps

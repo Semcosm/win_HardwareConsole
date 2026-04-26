@@ -4,19 +4,32 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.UI.Dispatching;
 using Semcosm.HardwareConsole.Abstractions;
 using Semcosm.HardwareConsole.App.Models;
 
 namespace Semcosm.HardwareConsole.App.ViewModels;
 
-public sealed class DiagnosticsViewModel : INotifyPropertyChanged
+public sealed class DiagnosticsViewModel : INotifyPropertyChanged, IDisposable
 {
+    private static readonly DiagnosticHealthSurface[] HealthSurfaces =
+    [
+        new("Routes", DiagnosticSource.Routes, "No route diagnostics yet."),
+        new("Plugins", DiagnosticSource.Plugins, "No plugin diagnostics yet."),
+        new("Profiles", DiagnosticSource.Profiles, "No profile apply diagnostics yet."),
+        new("Fans", DiagnosticSource.Fans, "No fan preview diagnostics yet."),
+        new("Thermal", DiagnosticSource.Thermal, "No thermal preview diagnostics yet.")
+    ];
+
+    private readonly DispatcherQueue? _dispatcherQueue;
     private readonly IDiagnosticsProvider _diagnosticsProvider;
+    private bool _disposed;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public DiagnosticsViewModel(IDiagnosticsProvider diagnosticsProvider)
     {
+        _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
         _diagnosticsProvider = diagnosticsProvider;
         _diagnosticsProvider.RecordsChanged += DiagnosticsProvider_RecordsChanged;
 
@@ -30,50 +43,71 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged
 
     public ObservableCollection<DiagnosticRecordModel> DiagnosticLog { get; }
 
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _diagnosticsProvider.RecordsChanged -= DiagnosticsProvider_RecordsChanged;
+        _disposed = true;
+        GC.SuppressFinalize(this);
+    }
+
     private void DiagnosticsProvider_RecordsChanged(object? sender, EventArgs e)
     {
+        if (_disposed)
+        {
+            return;
+        }
+
+        if (_dispatcherQueue is not null && !_dispatcherQueue.HasThreadAccess)
+        {
+            _dispatcherQueue.TryEnqueue(Refresh);
+            return;
+        }
+
         Refresh();
     }
 
     private void Refresh()
     {
-        var records = _diagnosticsProvider.GetRecords();
+        if (_disposed)
+        {
+            return;
+        }
 
-        RebuildSystemHealth(records);
+        var records = _diagnosticsProvider.GetRecords();
+        var latestRecordsBySource = records
+            .GroupBy(record => record.Source)
+            .ToDictionary(
+                group => group.Key,
+                group => group.OrderByDescending(record => record.Timestamp).First());
+
+        RebuildSystemHealth(records, latestRecordsBySource);
         RebuildDiagnosticLog(records);
         OnPropertyChanged(nameof(SystemHealth));
         OnPropertyChanged(nameof(DiagnosticLog));
     }
 
-    private void RebuildSystemHealth(IReadOnlyList<DiagnosticRecord> records)
+    private void RebuildSystemHealth(
+        IReadOnlyList<DiagnosticRecord> records,
+        IReadOnlyDictionary<DiagnosticSource, DiagnosticRecord> latestRecordsBySource)
     {
         SystemHealth.Clear();
 
-        SystemHealth.Add(BuildSourceCard(
-            "Routes",
-            DiagnosticSource.Routes,
-            _diagnosticsProvider.GetLatest(DiagnosticSource.Routes),
-            "No route diagnostics yet."));
+        foreach (var surface in HealthSurfaces)
+        {
+            if (surface.Source == DiagnosticSource.Plugins)
+            {
+                SystemHealth.Add(BuildPluginCard(records));
+                continue;
+            }
 
-        SystemHealth.Add(BuildPluginCard(records));
-
-        SystemHealth.Add(BuildSourceCard(
-            "Profiles",
-            DiagnosticSource.Profiles,
-            _diagnosticsProvider.GetLatest(DiagnosticSource.Profiles),
-            "No profile apply diagnostics yet."));
-
-        SystemHealth.Add(BuildSourceCard(
-            "Fans",
-            DiagnosticSource.Fans,
-            _diagnosticsProvider.GetLatest(DiagnosticSource.Fans),
-            "No fan preview diagnostics yet."));
-
-        SystemHealth.Add(BuildSourceCard(
-            "Thermal",
-            DiagnosticSource.Thermal,
-            _diagnosticsProvider.GetLatest(DiagnosticSource.Thermal),
-            "No thermal preview diagnostics yet."));
+            latestRecordsBySource.TryGetValue(surface.Source, out var record);
+            SystemHealth.Add(BuildSourceCard(surface.Title, surface.Source, record, surface.EmptyText));
+        }
     }
 
     private void RebuildDiagnosticLog(IReadOnlyList<DiagnosticRecord> records)
@@ -146,8 +180,10 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged
             };
         }
 
-        var severity = latestPluginRecords.Any(record => record.Severity == DiagnosticSeverity.Error)
-            ? DiagnosticSeverity.Error
+        var severity = latestPluginRecords.Any(record => record.Severity == DiagnosticSeverity.Critical)
+            ? DiagnosticSeverity.Critical
+            : latestPluginRecords.Any(record => record.Severity == DiagnosticSeverity.Error)
+                ? DiagnosticSeverity.Error
             : latestPluginRecords.Any(record => record.Severity == DiagnosticSeverity.Warning)
                 ? DiagnosticSeverity.Warning
                 : DiagnosticSeverity.Info;
@@ -173,6 +209,7 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged
     {
         return severity switch
         {
+            DiagnosticSeverity.Critical => "Critical",
             DiagnosticSeverity.Error => "Error",
             DiagnosticSeverity.Warning => "Warning",
             _ => "Info"
@@ -183,6 +220,7 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged
     {
         return severity switch
         {
+            DiagnosticSeverity.Critical => "Critical",
             DiagnosticSeverity.Error => "Attention Required",
             DiagnosticSeverity.Warning => "Warning",
             _ => "OK"
@@ -193,4 +231,9 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
+
+    private sealed record DiagnosticHealthSurface(
+        string Title,
+        DiagnosticSource Source,
+        string EmptyText);
 }

@@ -137,11 +137,15 @@ Current PR12 boundary:
 
 - diagnostics contracts now live in `Semcosm.HardwareConsole.Abstractions`
 - `DiagnosticsStore` is the current in-memory sink/provider pair for session diagnostics
+- `DiagnosticsStore` now locks its in-memory record list before snapshot reads and writes
 - `DiagnosticsPage` renders both latest-per-surface health cards and the session log
 - route registry and navigation failures emit route diagnostics
-- plugin registry state is snapshotted into diagnostics at app launch
+- plugin registry state is snapshotted into diagnostics at app launch and can now be republished through `IPluginRegistry.PluginsChanged`
 - profile apply results emit diagnostics through `ProfilesViewModel`
 - fan and thermal preview flows emit diagnostics through their page view models
+- `DiagnosticsViewModel` now detaches from the singleton diagnostics provider on disposal and uses the UI dispatcher before rebuilding observable collections
+- `DiagnosticSeverity` now reserves `Critical` for future hardware-fault and safety-stop paths
+- `DiagnosticSource` now already reserves future areas such as `Devices`, `Power`, `Scheduler`, `Service`, `PolicyValidation`, and `HardwareAccess`
 - diagnostics currently remain session-scoped; there is no persisted store or external log shipping yet
 
 Current thermal validation boundary:
@@ -170,4 +174,5 @@ Current diagnostics convergence note:
 - diagnostics is intentionally orthogonal to local page-preview models
 - fan, thermal, profile, route, and plugin surfaces still expose their own local result contracts to their pages
 - `DiagnosticRecord` is the shared cross-cutting shape for global health and historical feedback
+- the system-health card list is now configuration-driven instead of being hard-coded directly in the rebuild method
 - once power and scheduler pages exist, they should emit diagnostics through the same sink instead of inventing per-page global logging models

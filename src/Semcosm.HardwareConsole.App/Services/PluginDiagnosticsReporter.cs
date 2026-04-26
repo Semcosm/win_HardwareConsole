@@ -3,10 +3,11 @@ using Semcosm.HardwareConsole.Abstractions;
 
 namespace Semcosm.HardwareConsole.App.Services;
 
-public sealed class PluginDiagnosticsReporter
+public sealed class PluginDiagnosticsReporter : IDisposable
 {
     private readonly IPluginRegistry _pluginRegistry;
     private readonly IDiagnosticsSink _diagnosticsSink;
+    private bool _disposed;
 
     public PluginDiagnosticsReporter(
         IPluginRegistry pluginRegistry,
@@ -14,6 +15,7 @@ public sealed class PluginDiagnosticsReporter
     {
         _pluginRegistry = pluginRegistry;
         _diagnosticsSink = diagnosticsSink;
+        _pluginRegistry.PluginsChanged += PluginRegistry_PluginsChanged;
     }
 
     public void PublishSnapshot()
@@ -36,5 +38,22 @@ public sealed class PluginDiagnosticsReporter
                 plugin.Id,
                 DateTimeOffset.UtcNow));
         }
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _pluginRegistry.PluginsChanged -= PluginRegistry_PluginsChanged;
+        _disposed = true;
+        GC.SuppressFinalize(this);
+    }
+
+    private void PluginRegistry_PluginsChanged(object? sender, EventArgs e)
+    {
+        PublishSnapshot();
     }
 }

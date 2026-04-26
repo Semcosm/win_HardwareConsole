@@ -1,3 +1,5 @@
+using System;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Semcosm.HardwareConsole.App.ViewModels;
 
@@ -11,5 +13,16 @@ public sealed partial class DiagnosticsPage : Page
     {
         ViewModel = App.GetService<DiagnosticsViewModel>();
         InitializeComponent();
+        Unloaded += DiagnosticsPage_Unloaded;
+    }
+
+    private void DiagnosticsPage_Unloaded(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
+
+        Unloaded -= DiagnosticsPage_Unloaded;
     }
 }

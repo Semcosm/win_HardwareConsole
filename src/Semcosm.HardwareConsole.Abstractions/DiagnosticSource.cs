@@ -5,7 +5,13 @@ public enum DiagnosticSource
     System,
     Routes,
     Plugins,
+    Devices,
     Profiles,
     Fans,
-    Thermal
+    Thermal,
+    Power,
+    Scheduler,
+    Service,
+    PolicyValidation,
+    HardwareAccess
 }
