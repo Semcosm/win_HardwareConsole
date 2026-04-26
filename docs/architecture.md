@@ -54,6 +54,17 @@ runtime surface
           -> DiagnosticsPage
 ```
 
+Current plugin-manifest shape:
+
+```text
+plugins/*/plugin.json
+  -> PluginManifestLoader
+    -> PluginManifestValidator
+      -> PluginManifestCatalog
+        -> manifest-backed plugin registry
+          -> plugin diagnostics + plugins UI
+```
+
 Current policy-runtime shape:
 
 ```text
@@ -219,3 +230,14 @@ Current diagnostics convergence note:
 - the system-health card list is now configuration-driven instead of being hard-coded directly in the rebuild method
 - power and scheduler previews now also emit through the shared diagnostics sink instead of inventing per-page global logging models
 - diagnostics dispatch is still synchronous at the store boundary; view models currently marshal back to the UI thread themselves
+
+Current PR15 boundary:
+
+- plugin manifests now load from `plugins/*/plugin.json`
+- `PluginManifestDescriptor`, declaration records, and validation results now live in `Semcosm.HardwareConsole.Abstractions`
+- `PluginManifestLoader` parses JSON only; it does not execute plugin code
+- `PluginManifestValidator` validates schema version, duplicate plugin ids, duplicate control ids, and confirmation requirements for high-risk manifests
+- `ManifestBackedPluginRegistry` now maps valid manifests into `PluginDescriptor` for the existing plugin/device UI surfaces
+- manifest load/validation outcomes emit diagnostics such as `plugins.manifest.loaded`, `plugins.manifest.invalid`, `plugins.manifest.duplicate_plugin_id`, `plugins.manifest.duplicate_control_id`, and `plugins.manifest.unsupported_schema_version`
+- plugin route declarations are parsed but not executed or registered in the shell yet
+- no plugin code execution or hardware write path is implemented yet

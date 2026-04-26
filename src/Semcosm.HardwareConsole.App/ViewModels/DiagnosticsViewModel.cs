@@ -295,7 +295,7 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged, IDisposable
                 : DiagnosticSeverity.Info;
 
         var stateSummary = latestPluginRecords
-            .GroupBy(record => record.Code.Replace("plugins.state.", string.Empty, StringComparison.OrdinalIgnoreCase))
+            .GroupBy(record => NormalizePluginDiagnosticCode(record.Code))
             .OrderBy(group => group.Key)
             .Select(group => $"{group.Key}: {group.Count()}")
             .ToArray();
@@ -331,6 +331,21 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged, IDisposable
             DiagnosticSeverity.Warning => "Warning",
             _ => "OK"
         };
+    }
+
+    private static string NormalizePluginDiagnosticCode(string code)
+    {
+        if (code.StartsWith("plugins.state.", StringComparison.OrdinalIgnoreCase))
+        {
+            return code.Replace("plugins.state.", string.Empty, StringComparison.OrdinalIgnoreCase);
+        }
+
+        if (code.StartsWith("plugins.manifest.", StringComparison.OrdinalIgnoreCase))
+        {
+            return code.Replace("plugins.manifest.", string.Empty, StringComparison.OrdinalIgnoreCase);
+        }
+
+        return code;
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)

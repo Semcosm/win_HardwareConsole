@@ -1,0 +1,160 @@
+{
+  "schemaVersion": "0.1.0",
+  "id": "semcosm.mock.platform",
+  "displayName": "Mock Platform Plugin",
+  "vendor": "Semcosm",
+  "version": "0.1.0",
+  "riskLevel": "HardwareWrite",
+  "requiresConfirmation": true,
+  "capabilities": [
+    {
+      "id": "cap.fan.control",
+      "displayName": "Fan Control",
+      "description": "Fan RPM monitoring and curve control surfaces.",
+      "capabilityTags": [
+        "fan.cpu.rpm",
+        "fan.gpu.rpm",
+        "fan.cpu.pwm",
+        "fan.gpu.pwm"
+      ]
+    },
+    {
+      "id": "cap.thermal.policy",
+      "displayName": "Thermal Policy",
+      "description": "Thermal targets and protection strategy hooks.",
+      "capabilityTags": [
+        "thermal.policy",
+        "thermal.guardrail"
+      ]
+    }
+  ],
+  "devices": [
+    {
+      "id": "device.platform.mock-host",
+      "displayName": "Semcosm Reference Mock Host",
+      "vendor": "Semcosm",
+      "model": "Reference Mock Host",
+      "capabilityIds": [
+        "cap.fan.control",
+        "cap.thermal.policy"
+      ]
+    }
+  ],
+  "sensors": [
+    {
+      "id": "sensor.fan.mode",
+      "displayName": "Fan Mode",
+      "deviceId": "device.platform.mock-host",
+      "kind": "State",
+      "unit": "",
+      "capabilityTags": []
+    },
+    {
+      "id": "sensor.fan.state",
+      "displayName": "Fan State",
+      "deviceId": "device.platform.mock-host",
+      "kind": "State",
+      "unit": "",
+      "capabilityTags": []
+    },
+    {
+      "id": "sensor.fan.cpu_rpm",
+      "displayName": "CPU Fan RPM",
+      "deviceId": "device.platform.mock-host",
+      "kind": "FanSpeed",
+      "unit": "RPM",
+      "capabilityTags": []
+    },
+    {
+      "id": "sensor.fan.gpu_rpm",
+      "displayName": "GPU Fan RPM",
+      "deviceId": "device.platform.mock-host",
+      "kind": "FanSpeed",
+      "unit": "RPM",
+      "capabilityTags": []
+    },
+    {
+      "id": "sensor.fan.response",
+      "displayName": "Fan Response",
+      "deviceId": "device.platform.mock-host",
+      "kind": "Text",
+      "unit": "",
+      "capabilityTags": []
+    },
+    {
+      "id": "sensor.thermal.max_cpu_gpu",
+      "displayName": "Max(CPU, GPU)",
+      "deviceId": "device.platform.mock-host",
+      "kind": "Temperature",
+      "unit": "C",
+      "capabilityTags": [
+        "fan.policy.input"
+      ]
+    },
+    {
+      "id": "sensor.thermal.policy",
+      "displayName": "Thermal Policy",
+      "deviceId": "device.platform.mock-host",
+      "kind": "Text",
+      "unit": "",
+      "capabilityTags": []
+    },
+    {
+      "id": "sensor.thermal.summary",
+      "displayName": "Thermal Summary",
+      "deviceId": "device.platform.mock-host",
+      "kind": "Text",
+      "unit": "",
+      "capabilityTags": []
+    },
+    {
+      "id": "sensor.thermal.state",
+      "displayName": "Thermal State",
+      "deviceId": "device.platform.mock-host",
+      "kind": "State",
+      "unit": "",
+      "capabilityTags": []
+    }
+  ],
+  "controls": [
+    {
+      "id": "control.fan.cpu_pwm",
+      "displayName": "CPU Fan PWM",
+      "deviceId": "device.platform.mock-host",
+      "kind": "Fan",
+      "riskLevel": "HardwareWrite",
+      "capabilityTags": [
+        "fan.policy.output"
+      ]
+    },
+    {
+      "id": "control.fan.gpu_pwm",
+      "displayName": "GPU Fan PWM",
+      "deviceId": "device.platform.mock-host",
+      "kind": "Fan",
+      "riskLevel": "HardwareWrite",
+      "capabilityTags": [
+        "fan.policy.output"
+      ]
+    },
+    {
+      "id": "control.fan.curve",
+      "displayName": "Fan Curve",
+      "deviceId": "device.platform.mock-host",
+      "kind": "FanCurve",
+      "riskLevel": "HardwareWrite",
+      "capabilityTags": [
+        "fan.policy.output"
+      ]
+    },
+    {
+      "id": "control.platform.profile",
+      "displayName": "Platform Profile",
+      "deviceId": "device.platform.mock-host",
+      "kind": "Mode",
+      "riskLevel": "SafeControl",
+      "capabilityTags": []
+    }
+  ],
+  "routes": []
+}

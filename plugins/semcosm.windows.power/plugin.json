@@ -1,0 +1,135 @@
+{
+  "schemaVersion": "0.1.0",
+  "id": "semcosm.windows.power",
+  "displayName": "Windows Power Plugin",
+  "vendor": "Semcosm",
+  "version": "0.1.0",
+  "riskLevel": "SafeControl",
+  "requiresConfirmation": false,
+  "capabilities": [
+    {
+      "id": "cap.power.policy",
+      "displayName": "Power Policy",
+      "description": "Windows power plan and AC/DC behavior integration.",
+      "capabilityTags": [
+        "power.plan",
+        "power.ac_dc"
+      ]
+    },
+    {
+      "id": "cap.scheduler.policy",
+      "displayName": "Scheduler Policy",
+      "description": "Process and scheduler policy hints.",
+      "capabilityTags": [
+        "scheduler.ecoqos",
+        "process.priority"
+      ]
+    }
+  ],
+  "devices": [
+    {
+      "id": "device.cpu.intel-13900hx",
+      "displayName": "Intel Core i9-13900HX",
+      "vendor": "Intel",
+      "model": "Core i9-13900HX",
+      "capabilityIds": [
+        "cap.power.policy"
+      ]
+    },
+    {
+      "id": "device.platform.mock-host",
+      "displayName": "Semcosm Reference Mock Host",
+      "vendor": "Semcosm",
+      "model": "Reference Mock Host",
+      "capabilityIds": [
+        "cap.power.policy",
+        "cap.scheduler.policy"
+      ]
+    }
+  ],
+  "sensors": [
+    {
+      "id": "sensor.cpu.package_power",
+      "displayName": "CPU Package Power",
+      "deviceId": "device.cpu.intel-13900hx",
+      "kind": "Power",
+      "unit": "W",
+      "capabilityTags": []
+    },
+    {
+      "id": "sensor.power.state",
+      "displayName": "Power State",
+      "deviceId": "device.platform.mock-host",
+      "kind": "State",
+      "unit": "",
+      "capabilityTags": []
+    },
+    {
+      "id": "sensor.power.summary",
+      "displayName": "Power Summary",
+      "deviceId": "device.platform.mock-host",
+      "kind": "Text",
+      "unit": "",
+      "capabilityTags": []
+    },
+    {
+      "id": "sensor.power.details",
+      "displayName": "Power Details",
+      "deviceId": "device.platform.mock-host",
+      "kind": "Text",
+      "unit": "",
+      "capabilityTags": []
+    }
+  ],
+  "controls": [
+    {
+      "id": "control.cpu.power_limits",
+      "displayName": "CPU Power Limits",
+      "deviceId": "device.cpu.intel-13900hx",
+      "kind": "Range",
+      "riskLevel": "SafeControl",
+      "capabilityTags": []
+    },
+    {
+      "id": "control.power.plan",
+      "displayName": "Power Plan",
+      "deviceId": "device.platform.mock-host",
+      "kind": "Mode",
+      "riskLevel": "SafeControl",
+      "capabilityTags": []
+    },
+    {
+      "id": "control.scheduler.foreground_boost",
+      "displayName": "Foreground Boost",
+      "deviceId": "device.platform.mock-host",
+      "kind": "Toggle",
+      "riskLevel": "SafeControl",
+      "capabilityTags": []
+    },
+    {
+      "id": "control.scheduler.efficiency_mode",
+      "displayName": "Efficiency Mode",
+      "deviceId": "device.platform.mock-host",
+      "kind": "Toggle",
+      "riskLevel": "SafeControl",
+      "capabilityTags": []
+    },
+    {
+      "id": "control.scheduler.background_throttle",
+      "displayName": "Background Throttling",
+      "deviceId": "device.platform.mock-host",
+      "kind": "Toggle",
+      "riskLevel": "SafeControl",
+      "capabilityTags": []
+    },
+    {
+      "id": "control.scheduler.background_ecoqos",
+      "displayName": "Background EcoQoS",
+      "deviceId": "device.platform.mock-host",
+      "kind": "Toggle",
+      "riskLevel": "SafeControl",
+      "capabilityTags": []
+    }
+  ],
+  "routes": []
+}

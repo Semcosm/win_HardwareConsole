@@ -7,6 +7,10 @@ The current repository focuses on establishing the app shell and the UI architec
 This PR-level layout now follows PascalCase naming and a `src/`-based project structure:
 
 ```text
+plugins/
+  semcosm.windows.power/plugin.json
+  semcosm.mock.platform/plugin.json
+  semcosm.mechrevo.gm6px0x.mock/plugin.json
 src/
   Semcosm.HardwareConsole.App/
   Semcosm.HardwareConsole.Abstractions/
@@ -65,6 +69,17 @@ Mock provider
   -> profile runtime / sensor snapshot
   -> ViewModel
     -> WinUI page
+```
+
+Plugin manifest flow:
+
+```text
+plugins/*/plugin.json
+  -> PluginManifestLoader
+    -> PluginManifestValidator
+      -> PluginManifestCatalog
+        -> manifest-backed plugin registry
+          -> UI + diagnostics
 ```
 
 Navigation flow:
@@ -146,13 +161,19 @@ The `Active Profile` card now comes from `IProfileRuntimeService`, not from mock
 Backed by:
 
 - `src/Semcosm.HardwareConsole.Abstractions/PluginDescriptor.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/PluginManifestDescriptor.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/PluginManifestValidationResult.cs`
 - `src/Semcosm.HardwareConsole.Abstractions/IPluginRegistry.cs`
-- `src/Semcosm.HardwareConsole.Mock/Services/MockPluginRegistry.cs`
+- `src/Semcosm.HardwareConsole.App/Services/PluginManifestLoader.cs`
+- `src/Semcosm.HardwareConsole.App/Services/PluginManifestValidator.cs`
+- `src/Semcosm.HardwareConsole.App/Services/PluginManifestCatalog.cs`
+- `src/Semcosm.HardwareConsole.App/Services/ManifestBackedPluginRegistry.cs`
+- `src/Semcosm.HardwareConsole.App/Services/PluginManifestDiagnosticsReporter.cs`
 - `src/Semcosm.HardwareConsole.App/Models/PluginManifestModel.cs`
 - `src/Semcosm.HardwareConsole.App/ViewModels/PluginsViewModel.cs`
 - `src/Semcosm.HardwareConsole.App/Views/PluginsPage.xaml`
 
-Shows mock installed plugins with:
+Shows manifest-backed mock installed plugins with:
 
 - display name
 - plugin id
@@ -170,10 +191,12 @@ Current mock plugins:
 The current flow is:
 
 ```text
-PluginDescriptor
-  -> PluginManifestModel
-    -> PluginsViewModel
-      -> PluginsPage
+plugin.json
+  -> PluginManifestDescriptor
+    -> PluginDescriptor
+      -> PluginManifestModel
+        -> PluginsViewModel
+          -> PluginsPage
 ```
 
 Dashboard now follows a similar mapping pattern:
@@ -373,6 +396,7 @@ Shows:
 
 Diagnostics is currently session-scoped and mock-driven. It does not collect hardware telemetry logs or real crash dumps.
 The current diagnostics taxonomy already reserves additional sources such as `Devices`, `Power`, `Scheduler`, `Service`, `PolicyValidation`, and `HardwareAccess`, even though the first active health cards still focus on routes, plugins, profiles, fans, and thermal.
+Plugin manifest loading now also reports diagnostics for manifest load/validation outcomes such as invalid JSON, duplicate plugin ids, duplicate control ids, unsupported schema versions, and high-risk manifests that omit confirmation requirements.
 
 ## Why This Shape
 

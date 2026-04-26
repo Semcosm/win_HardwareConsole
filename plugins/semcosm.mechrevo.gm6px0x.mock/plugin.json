@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "0.1.0",
+  "id": "semcosm.mechrevo.gm6px0x.mock",
+  "displayName": "Mechrevo GM6PX0X Mock Plugin",
+  "vendor": "Semcosm",
+  "version": "0.1.0",
+  "riskLevel": "HardwareWrite",
+  "requiresConfirmation": true,
+  "capabilities": [
+    {
+      "id": "cap.platform.mock.vendor",
+      "displayName": "Vendor Platform Hooks",
+      "description": "Mock vendor-specific platform capability declarations for advanced tuning surfaces.",
+      "capabilityTags": [
+        "platform.performance_mode",
+        "route.vendor"
+      ]
+    }
+  ],
+  "devices": [
+    {
+      "id": "device.platform.mock-host",
+      "displayName": "Semcosm Reference Mock Host",
+      "vendor": "Semcosm",
+      "model": "Reference Mock Host",
+      "capabilityIds": [
+        "cap.platform.mock.vendor"
+      ]
+    }
+  ],
+  "sensors": [],
+  "controls": [],
+  "routes": [
+    {
+      "tag": "mechrevo-advanced",
+      "title": "Mechrevo Advanced",
+      "kind": "PluginPage",
+      "icon": "Library",
+      "isFooter": false
+    }
+  ]
+}

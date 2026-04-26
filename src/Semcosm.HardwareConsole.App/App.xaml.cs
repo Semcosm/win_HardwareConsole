@@ -34,7 +34,10 @@ namespace Semcosm.HardwareConsole.App
             services.AddSingleton<IDiagnosticsProvider>(serviceProvider => serviceProvider.GetRequiredService<DiagnosticsStore>());
             services.AddSingleton<IDiagnosticsSessionController>(serviceProvider => serviceProvider.GetRequiredService<DiagnosticsStore>());
             services.AddSingleton<IHardwareInventoryService, MockHardwareInventoryService>();
-            services.AddSingleton<IPluginRegistry, MockPluginRegistry>();
+            services.AddSingleton<PluginManifestLoader>();
+            services.AddSingleton<PluginManifestValidator>();
+            services.AddSingleton<PluginManifestCatalog>();
+            services.AddSingleton<IPluginRegistry, ManifestBackedPluginRegistry>();
             services.AddSingleton<IProfileRuntimeService, MockProfileRuntimeService>();
             services.AddSingleton<IPolicyValidator<FanCurvePolicyDescriptor, FanPolicyValidationResult>, MockFanPolicyValidator>();
             services.AddSingleton<IPolicyValidator<PowerPolicyDescriptor, PowerPolicyValidationResult>, MockPowerPolicyValidator>();
@@ -46,6 +49,7 @@ namespace Semcosm.HardwareConsole.App
             services.AddSingleton<IThermalPolicyRuntimeService, MockThermalPolicyRuntimeService>();
             services.AddSingleton<ISensorSnapshotProvider, MockSensorSnapshotProvider>();
             services.AddSingleton<PluginDiagnosticsReporter>();
+            services.AddSingleton<PluginManifestDiagnosticsReporter>();
             services.AddSingleton<INavigationRouteProvider, BuiltInNavigationRouteProvider>();
             services.AddSingleton<INavigationRouteRegistry, CompositeNavigationRouteRegistry>();
             services.AddSingleton<IRouteContentFactory, BuiltInPageRouteContentFactory>();
@@ -71,6 +75,7 @@ namespace Semcosm.HardwareConsole.App
 
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
+            GetService<PluginManifestDiagnosticsReporter>().PublishSnapshot();
             GetService<PluginDiagnosticsReporter>().PublishSnapshot();
             _window = GetService<MainWindow>();
             _window.Activate();
