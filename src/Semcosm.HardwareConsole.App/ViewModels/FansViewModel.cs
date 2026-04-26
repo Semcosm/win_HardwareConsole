@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -10,6 +11,7 @@ namespace Semcosm.HardwareConsole.App.ViewModels;
 
 public sealed class FansViewModel : INotifyPropertyChanged
 {
+    private readonly IDiagnosticsSink _diagnosticsSink;
     private readonly IReadOnlyList<SelectionOptionModel> _inputSensorOptions;
     private readonly IReadOnlyList<SelectionOptionModel> _outputControlOptions;
     private readonly FanPolicyPresentationMapper _presentationMapper;
@@ -22,8 +24,10 @@ public sealed class FansViewModel : INotifyPropertyChanged
 
     public FansViewModel(
         IPolicyRuntimeService policyRuntimeService,
-        FanPolicyPresentationMapper presentationMapper)
+        FanPolicyPresentationMapper presentationMapper,
+        IDiagnosticsSink diagnosticsSink)
     {
+        _diagnosticsSink = diagnosticsSink;
         _presentationMapper = presentationMapper;
         _inputSensorOptions = _presentationMapper.BuildInputSensorOptions();
         _outputControlOptions = _presentationMapper.BuildOutputControlOptions();
@@ -86,6 +90,7 @@ public sealed class FansViewModel : INotifyPropertyChanged
 
         var previewPolicy = BuildPolicyFromDraft(policyId);
         var preview = _policyRuntimeService.PreviewFanPolicy(previewPolicy);
+        ReportPreviewDiagnostic(preview);
 
         _previewedPolicyId = policyId;
         RebuildPreviewCurvePoints(previewPolicy.Points);
@@ -129,7 +134,9 @@ public sealed class FansViewModel : INotifyPropertyChanged
         RefreshPolicyModel(policyId);
         _previewedPolicyId = policyId;
         RebuildPreviewCurvePoints(appliedPolicy.Points);
-        Preview = _presentationMapper.MapPreview(_policyRuntimeService.PreviewFanPolicy(appliedPolicy));
+        var preview = _policyRuntimeService.PreviewFanPolicy(appliedPolicy);
+        ReportPreviewDiagnostic(preview);
+        Preview = _presentationMapper.MapPreview(preview);
     }
 
     private FanPolicyEditorModel CreateEditorModel(FanCurvePolicyDescriptor policy)
@@ -268,5 +275,26 @@ public sealed class FansViewModel : INotifyPropertyChanged
         field = value;
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         return true;
+    }
+
+    private void ReportPreviewDiagnostic(PolicyRuntimePreview preview)
+    {
+        var severity = preview.Success
+            ? DiagnosticSeverity.Info
+            : DiagnosticSeverity.Warning;
+
+        var message = preview.Message;
+        if (preview.BlockedReasons.Count > 0)
+        {
+            message = $"{message} Blocked: {string.Join(" · ", preview.BlockedReasons)}";
+        }
+
+        _diagnosticsSink.Report(new DiagnosticRecord(
+            severity,
+            DiagnosticSource.Fans,
+            $"fans.preview.{preview.FailureCode.ToString().ToLowerInvariant()}",
+            message,
+            preview.PolicyId,
+            DateTimeOffset.UtcNow));
     }
 }

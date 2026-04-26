@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -10,6 +11,7 @@ namespace Semcosm.HardwareConsole.App.ViewModels;
 
 public sealed class ThermalViewModel : INotifyPropertyChanged
 {
+    private readonly IDiagnosticsSink _diagnosticsSink;
     private readonly ThermalPolicyPresentationMapper _presentationMapper;
     private readonly Dictionary<string, ThermalPolicyDescriptor> _policiesById;
     private readonly IPolicyRuntimeService _policyRuntimeService;
@@ -19,8 +21,10 @@ public sealed class ThermalViewModel : INotifyPropertyChanged
 
     public ThermalViewModel(
         IPolicyRuntimeService policyRuntimeService,
-        ThermalPolicyPresentationMapper presentationMapper)
+        ThermalPolicyPresentationMapper presentationMapper,
+        IDiagnosticsSink diagnosticsSink)
     {
+        _diagnosticsSink = diagnosticsSink;
         _policyRuntimeService = policyRuntimeService;
         _presentationMapper = presentationMapper;
         _policiesById = BuildPolicyMap(_policyRuntimeService.GetAvailableThermalPolicies());
@@ -59,6 +63,7 @@ public sealed class ThermalViewModel : INotifyPropertyChanged
         }
 
         var preview = _policyRuntimeService.PreviewThermalPolicy(policy);
+        ReportPreviewDiagnostic(preview);
 
         PreviewActions.Clear();
 
@@ -68,6 +73,27 @@ public sealed class ThermalViewModel : INotifyPropertyChanged
         }
 
         Preview = _presentationMapper.MapPreview(preview);
+    }
+
+    private void ReportPreviewDiagnostic(ThermalPolicyPreview preview)
+    {
+        var severity = preview.Success
+            ? DiagnosticSeverity.Info
+            : DiagnosticSeverity.Warning;
+
+        var message = preview.Message;
+        if (preview.BlockedReasons.Count > 0)
+        {
+            message = $"{message} Blocked: {string.Join(" · ", preview.BlockedReasons)}";
+        }
+
+        _diagnosticsSink.Report(new DiagnosticRecord(
+            severity,
+            DiagnosticSource.Thermal,
+            $"thermal.preview.{preview.FailureCode.ToString().ToLowerInvariant()}",
+            message,
+            preview.PolicyId,
+            DateTimeOffset.UtcNow));
     }
 
     private static Dictionary<string, ThermalPolicyDescriptor> BuildPolicyMap(

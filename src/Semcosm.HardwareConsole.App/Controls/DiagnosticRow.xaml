@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="Semcosm.HardwareConsole.App.Controls.DiagnosticRow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Semcosm.HardwareConsole.App.Controls"
+    xmlns:local="using:Semcosm.HardwareConsole.App.Controls"
+    x:DataType="local:DiagnosticRow"
+    x:Name="Root">
+
+    <Border
+        Padding="16"
+        CornerRadius="14"
+        Background="{ThemeResource LayerFillColorDefaultBrush}">
+        <StackPanel Spacing="10">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <controls:CapabilityChip Text="{x:Bind SeverityText, Mode=OneWay}" />
+                <controls:CapabilityChip Text="{x:Bind SourceText, Mode=OneWay}" />
+                <controls:CapabilityChip Text="{x:Bind Code, Mode=OneWay}" />
+            </StackPanel>
+
+            <TextBlock
+                Text="{x:Bind Message, Mode=OneWay}"
+                TextWrapping="Wrap"
+                FontWeight="SemiBold" />
+
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock
+                    Grid.Column="0"
+                    Text="{x:Bind RelatedId, Mode=OneWay}"
+                    Opacity="0.68"
+                    TextWrapping="Wrap" />
+
+                <TextBlock
+                    Grid.Column="1"
+                    Text="{x:Bind TimestampText, Mode=OneWay}"
+                    Opacity="0.68" />
+            </Grid>
+        </StackPanel>
+    </Border>
+</UserControl>

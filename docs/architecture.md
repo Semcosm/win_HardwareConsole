@@ -42,6 +42,17 @@ Navigation route providers
 
 This keeps page registration centralized and makes it possible to add plugin-provided routes later without putting more `switch` logic into the shell.
 
+Current diagnostics shape:
+
+```text
+runtime surface
+  -> IDiagnosticsSink
+    -> DiagnosticsStore
+      -> IDiagnosticsProvider
+        -> DiagnosticsViewModel
+          -> DiagnosticsPage
+```
+
 Current route types:
 
 - `BuiltInNavigationRoute`: WinUI pages owned by the app shell
@@ -122,6 +133,17 @@ Current PR11 boundary:
 - thermal chains reuse the same sensor/control inventory already exposed on `DevicesPage`
 - no runtime thermal engine or real hardware write path is implemented yet
 
+Current PR12 boundary:
+
+- diagnostics contracts now live in `Semcosm.HardwareConsole.Abstractions`
+- `DiagnosticsStore` is the current in-memory sink/provider pair for session diagnostics
+- `DiagnosticsPage` renders both latest-per-surface health cards and the session log
+- route registry and navigation failures emit route diagnostics
+- plugin registry state is snapshotted into diagnostics at app launch
+- profile apply results emit diagnostics through `ProfilesViewModel`
+- fan and thermal preview flows emit diagnostics through their page view models
+- diagnostics currently remain session-scoped; there is no persisted store or external log shipping yet
+
 Current thermal validation boundary:
 
 - validation contracts now live in `Semcosm.HardwareConsole.Abstractions`
@@ -142,3 +164,10 @@ Current policy-preview convergence note:
 - `PolicyRuntimePreview` and `ThermalPolicyPreview` intentionally remain separate because the page models differ
 - both previews now carry the same core shape: success state, failure code, required sensors, would-set controls, blocked reasons, diagnostics, and message
 - a later shared interface such as `IPolicyPreviewResult` is a likely cleanup step once more policy pages exist
+
+Current diagnostics convergence note:
+
+- diagnostics is intentionally orthogonal to local page-preview models
+- fan, thermal, profile, route, and plugin surfaces still expose their own local result contracts to their pages
+- `DiagnosticRecord` is the shared cross-cutting shape for global health and historical feedback
+- once power and scheduler pages exist, they should emit diagnostics through the same sink instead of inventing per-page global logging models

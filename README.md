@@ -16,12 +16,13 @@ src/
 Current app goals:
 
 - `Dashboard` shows unified hardware state through bound view models instead of hard-coded UI.
+- `Diagnostics` now provides a unified system-health and diagnostic-log surface across routes, plugins, profiles, fan policy preview, and thermal validation.
 - `Devices` shows mock hardware inventory, capability ownership, sensors, controls and plugin source hints.
 - `Fans` now provides a mock fan policy editor with runtime preview, without writing real hardware.
 - `Thermal` now provides mock thermal policy-chain preview for staged temperature walls, without writing real hardware.
 - `Plugins` shows capability providers, risk level, matched devices, and extension metadata.
 - `Profiles` now drives a mock profile runtime with preview/apply flows and updates Dashboard active profile state without writing real hardware.
-- Other pages already exist as placeholders for the next phase: `Performance`, `Power`, `Scheduler`, `Diagnostics`, `Settings`.
+- Other pages already exist as placeholders for the next phase: `Performance`, `Power`, `Scheduler`, `Settings`.
 
 ## Current Stack
 
@@ -73,6 +74,17 @@ Navigation route providers
     -> page factory
       -> navigation service
         -> MainWindow / NavigationView
+```
+
+Diagnostics flow:
+
+```text
+runtime surface
+  -> IDiagnosticsSink
+    -> diagnostics store
+      -> IDiagnosticsProvider
+        -> DiagnosticsViewModel
+          -> DiagnosticsPage
 ```
 
 Current route model:
@@ -266,6 +278,30 @@ ProfileDescriptor
         -> ProfilesPage
 ```
 
+### Diagnostics
+
+Backed by:
+
+- `src/Semcosm.HardwareConsole.Abstractions/DiagnosticSeverity.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/DiagnosticSource.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/DiagnosticRecord.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/IDiagnosticsSink.cs`
+- `src/Semcosm.HardwareConsole.Abstractions/IDiagnosticsProvider.cs`
+- `src/Semcosm.HardwareConsole.App/Services/DiagnosticsStore.cs`
+- `src/Semcosm.HardwareConsole.App/Services/PluginDiagnosticsReporter.cs`
+- `src/Semcosm.HardwareConsole.App/ViewModels/DiagnosticsViewModel.cs`
+- `src/Semcosm.HardwareConsole.App/Views/DiagnosticsPage.xaml`
+
+Shows:
+
+- system-health cards for `Routes`, `Plugins`, `Profiles`, `Fans`, and `Thermal`
+- historical diagnostic log rows with severity, source, code, message, related id, and timestamp
+- route diagnostics for duplicate tags, unresolved routes, and navigation failures
+- plugin-state diagnostics for mocked, failed, blocked, or unsupported providers
+- profile apply diagnostics, fan preview diagnostics, and thermal validation / preview diagnostics in one shared surface
+
+Diagnostics is currently session-scoped and mock-driven. It does not collect hardware telemetry logs or real crash dumps.
+
 ## Why This Shape
 
 The goal is to avoid tying the UI directly to a specific laptop brand, EC interface, or GPU vendor. Instead, device and control capabilities should come from plugins or adapters, while pages render from view models and capability metadata.
@@ -275,6 +311,8 @@ That keeps the UI stable when the backend evolves from mock data to real hardwar
 Profiles now follow the same separation: inventory still describes what profiles exist, `IProfileRuntimeService` owns which profile is active and what a profile would do, and `ProfilePresentationMapper` maps profile/runtime contracts into the UI models used by the page.
 
 Thermal policies now follow the same pattern as fan policies: the page binds descriptor-driven mock chains from `IPolicyRuntimeService`, while preview returns structured thermal-policy diagnostics instead of raw summary strings.
+
+Diagnostics now follows the same pattern: runtime surfaces report `DiagnosticRecord` entries through `IDiagnosticsSink`, while the page only renders the current aggregate state and session log through `IDiagnosticsProvider`.
 
 ## Run
 
@@ -336,6 +374,14 @@ That is intentional while the project is still using WinUI, XAML, DI, and future
 - threshold actions describe what control changes would happen as temperature walls are crossed
 - preview shows required sensors, would-set controls, blocked reasons, and diagnostics
 - no runtime thermal engine or real hardware write path is implemented yet
+
+## Diagnostics Notes
+
+`Diagnostics` currently uses an in-memory session store only.
+
+- route registry, navigation failures, plugin states, profile apply results, fan previews, and thermal previews all emit `DiagnosticRecord`
+- the page shows both latest-per-surface health and the historical session log
+- diagnostics are mock/runtime feedback only; there is no persistent log store yet
 
 ## Next Suggested Steps
 

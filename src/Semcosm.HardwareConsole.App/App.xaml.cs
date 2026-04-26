@@ -29,12 +29,16 @@ namespace Semcosm.HardwareConsole.App
 
         private static void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<DiagnosticsStore>();
+            services.AddSingleton<IDiagnosticsSink>(serviceProvider => serviceProvider.GetRequiredService<DiagnosticsStore>());
+            services.AddSingleton<IDiagnosticsProvider>(serviceProvider => serviceProvider.GetRequiredService<DiagnosticsStore>());
             services.AddSingleton<IHardwareInventoryService, MockHardwareInventoryService>();
             services.AddSingleton<IPluginRegistry, MockPluginRegistry>();
             services.AddSingleton<IProfileRuntimeService, MockProfileRuntimeService>();
             services.AddSingleton<IPolicyValidator<ThermalPolicyDescriptor, ThermalPolicyValidationResult>, MockThermalPolicyValidator>();
             services.AddSingleton<IPolicyRuntimeService, MockPolicyRuntimeService>();
             services.AddSingleton<ISensorSnapshotProvider, MockSensorSnapshotProvider>();
+            services.AddSingleton<PluginDiagnosticsReporter>();
             services.AddSingleton<INavigationRouteProvider, BuiltInNavigationRouteProvider>();
             services.AddSingleton<INavigationRouteRegistry, CompositeNavigationRouteRegistry>();
             services.AddSingleton<IRouteContentFactory, BuiltInPageRouteContentFactory>();
@@ -46,6 +50,7 @@ namespace Semcosm.HardwareConsole.App
             services.AddSingleton<ThermalPolicyPresentationMapper>();
             services.AddTransient<DashboardViewModel>();
             services.AddTransient<DevicesViewModel>();
+            services.AddTransient<DiagnosticsViewModel>();
             services.AddTransient<FansViewModel>();
             services.AddTransient<ProfilesViewModel>();
             services.AddTransient<PluginsViewModel>();
@@ -55,6 +60,7 @@ namespace Semcosm.HardwareConsole.App
 
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
+            GetService<PluginDiagnosticsReporter>().PublishSnapshot();
             _window = GetService<MainWindow>();
             _window.Activate();
         }

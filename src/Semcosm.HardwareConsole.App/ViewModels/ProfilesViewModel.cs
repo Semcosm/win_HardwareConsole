@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -10,6 +11,7 @@ namespace Semcosm.HardwareConsole.App.ViewModels;
 
 public sealed class ProfilesViewModel : INotifyPropertyChanged
 {
+    private readonly IDiagnosticsSink _diagnosticsSink;
     private readonly IProfileRuntimeService _profileRuntimeService;
     private readonly ProfilePresentationMapper _profilePresentationMapper;
     private ProfileCardModel? _activeProfile;
@@ -24,8 +26,10 @@ public sealed class ProfilesViewModel : INotifyPropertyChanged
 
     public ProfilesViewModel(
         IProfileRuntimeService profileRuntimeService,
-        ProfilePresentationMapper profilePresentationMapper)
+        ProfilePresentationMapper profilePresentationMapper,
+        IDiagnosticsSink diagnosticsSink)
     {
+        _diagnosticsSink = diagnosticsSink;
         _profileRuntimeService = profileRuntimeService;
         _profilePresentationMapper = profilePresentationMapper;
 
@@ -108,6 +112,8 @@ public sealed class ProfilesViewModel : INotifyPropertyChanged
             profileId,
             useConfirmedMode ? ProfileApplyMode.ActivateConfirmed : ProfileApplyMode.Activate);
 
+        ReportApplyDiagnostic(applyResult);
+
         _previewProfileId = profileId;
         RefreshProfiles();
 
@@ -134,6 +140,28 @@ public sealed class ProfilesViewModel : INotifyPropertyChanged
             UpdateConfirmationState(null);
         }
 
+    }
+
+    private void ReportApplyDiagnostic(ProfileApplyResult applyResult)
+    {
+        var severity = applyResult.Success
+            ? DiagnosticSeverity.Info
+            : applyResult.FailureCode switch
+            {
+                ProfileApplyFailureCode.ConfirmationRequired => DiagnosticSeverity.Warning,
+                ProfileApplyFailureCode.PartialFailure => DiagnosticSeverity.Warning,
+                _ => DiagnosticSeverity.Error
+            };
+
+        _diagnosticsSink.Report(new DiagnosticRecord(
+            severity,
+            DiagnosticSource.Profiles,
+            applyResult.Success
+                ? "profiles.apply.success"
+                : $"profiles.apply.{applyResult.FailureCode.ToString().ToLowerInvariant()}",
+            applyResult.Message,
+            applyResult.ProfileId,
+            DateTimeOffset.UtcNow));
     }
 
     private void RefreshProfiles()
